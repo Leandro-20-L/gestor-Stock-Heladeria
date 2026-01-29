@@ -1,3 +1,4 @@
 export const environment = {
-  apiUrl: 'https://gestor-stock-heladeria.onrender.com/',
+  production: false,
+  apiUrl: 'https://localhost:3000',
 };
