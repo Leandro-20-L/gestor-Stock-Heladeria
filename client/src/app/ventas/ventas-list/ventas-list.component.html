@@ -1,0 +1,70 @@
+<h2>Ventas</h2>
+
+<div class="top">
+  <select [formControl]="filtro.controls.medioPago">
+    <option value="">Todos</option>
+    <option value="efectivo">Efectivo</option>
+    <option value="transferencia">Transferencia</option>
+    <option value="point">Point</option>
+  </select>
+
+  <input
+    type="text"
+    [formControl]="filtro.controls.q"
+    placeholder="Buscar por producto (ej: helado, manaos...)"
+  />
+
+  <button type="button" (click)="cargar()" [disabled]="cargando()">
+    Recargar
+  </button>
+
+  <button type="button" (click)="limpiarFiltros()" [disabled]="cargando()">
+    Limpiar
+  </button>
+
+  <div class="total">
+    Total: <b>{{ totalFiltrado() }}</b>
+  </div>
+</div>
+
+<div *ngIf="cargando()">Cargando...</div>
+
+<div class="tabla" *ngIf="!cargando()">
+  <div class="fila header">
+    <div>Fecha</div>
+    <div>Medio</div>
+    <div>Total</div>
+    <div>Estado</div>
+    <div></div>
+  </div>
+
+  <ng-container *ngFor="let v of ventasFiltradas()">
+    <div class="fila">
+      <div>{{ v.createdAt | date: "dd/MM HH:mm" }}</div>
+      <div>{{ v.medioPago }}</div>
+      <div>
+        <b>{{ v.total }}</b>
+      </div>
+      <div>{{ v.estado }}</div>
+      <div>
+        <button type="button" (click)="toggleDetalle(v._id)">
+          {{ abiertaId() === v._id ? "Ocultar" : "Detalle" }}
+        </button>
+      </div>
+    </div>
+
+    <div class="detalle" *ngIf="abiertaId() === v._id">
+      <div class="item" *ngFor="let it of v.items">
+        <div>{{ it.nombreSnapshot }}</div>
+        <div>
+          {{ it.cantidad }} x {{ it.precioUnitarioSnapshot }} =
+          <b>{{ it.subtotal }}</b>
+        </div>
+      </div>
+    </div>
+  </ng-container>
+
+  <div class="empty" *ngIf="ventasFiltradas().length === 0">
+    No hay ventas con esos filtros.
+  </div>
+</div>

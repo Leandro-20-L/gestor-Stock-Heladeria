@@ -1,0 +1,152 @@
+:host {
+  display: block;
+  color: #fff;
+}
+
+h2 {
+  margin: 0 0 14px;
+  font-size: 22px;
+  font-weight: 900;
+  letter-spacing: 0.2px;
+}
+
+/* CARD FORM */
+form {
+  padding: 16px;
+  border-radius: 18px;
+
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(20, 22, 28, 0.72);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.35);
+}
+
+/* GRID */
+.grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px 12px;
+}
+
+@media (max-width: 900px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* LABEL + CONTROL */
+label {
+  display: grid;
+  gap: 8px;
+  padding: 12px;
+  border-radius: 16px;
+
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.03);
+
+  font-weight: 900;
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+input,
+select {
+  width: 100%;
+  padding: 12px 12px;
+  border-radius: 14px;
+
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.04);
+  color: #fff;
+
+  outline: none;
+  transition: 0.16s ease;
+
+  &::placeholder {
+    color: rgba(255, 255, 255, 0.45);
+  }
+
+  &:focus {
+    border-color: rgba(255, 214, 10, 0.55);
+    box-shadow: 0 0 0 4px rgba(255, 214, 10, 0.12);
+  }
+}
+
+/* Remove number spinners (opcional, queda más limpio) */
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+input[type="number"] {
+  appearance: textfield;
+}
+
+/* ACTIONS */
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 14px;
+  padding-top: 14px;
+
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+/* Cancelar */
+.actions button[type="button"] {
+  padding: 12px 14px;
+  border-radius: 14px;
+  cursor: pointer;
+  font-weight: 900;
+
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: rgba(255, 255, 255, 0.9);
+
+  transition: 0.16s ease;
+
+  &:hover {
+    transform: translateY(-1px);
+    border-color: rgba(255, 214, 10, 0.35);
+    background: rgba(255, 214, 10, 0.08);
+  }
+}
+
+/* Guardar (primario) */
+.actions button[type="submit"] {
+  padding: 12px 14px;
+  border-radius: 14px;
+  border: none;
+  cursor: pointer;
+  font-weight: 900;
+
+  background: linear-gradient(180deg, #ffd60a, #ffb703);
+  color: #151515;
+  box-shadow: 0 10px 22px rgba(255, 214, 10, 0.16);
+
+  transition: 0.16s ease;
+
+  &:hover {
+    transform: translateY(-1px);
+  }
+
+  &:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+  }
+}
+
+/* DEBUG */
+pre {
+  margin-top: 12px;
+  padding: 12px;
+  border-radius: 16px;
+
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(0, 0, 0, 0.35);
+  color: rgba(255, 255, 255, 0.85);
+  overflow: auto;
+}

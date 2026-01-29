@@ -1,0 +1,36 @@
+<h2>Historial de cierres</h2>
+
+<p *ngIf="cargando">Cargando...</p>
+
+<table class="tabla" *ngIf="!cargando && cierres.length > 0">
+  <thead>
+    <tr>
+      <th>Fecha</th>
+      <th>Productos</th>
+      <th>Con diferencias</th>
+      <th></th>
+    </tr>
+  </thead>
+
+  <tbody>
+    <tr *ngFor="let c of cierres">
+      <td>{{ c.fecha }}</td>
+      <td>{{ c.totalProductos }}</td>
+      <td>
+        <span
+          [class.ok]="c.conDiferencias === 0"
+          [class.bad]="c.conDiferencias > 0"
+        >
+          {{ c.conDiferencias }}
+        </span>
+      </td>
+      <td>
+        <a [routerLink]="['/app/cierres', c._id]">Ver detalle</a>
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+<p *ngIf="!cargando && cierres.length === 0">
+  Todavía no hay cierres guardados.
+</p>

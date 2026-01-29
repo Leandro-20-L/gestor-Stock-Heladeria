@@ -1,0 +1,44 @@
+<h2>Cierre del día</h2>
+
+<label>
+  Fecha:
+  <input type="date" [(ngModel)]="fecha" />
+</label>
+
+<table class="tabla">
+  <thead>
+    <tr>
+      <th>Producto</th>
+      <th>Teórico</th>
+      <th>Contado</th>
+      <th>Diferencia</th>
+    </tr>
+  </thead>
+
+  <tbody>
+    <tr *ngFor="let r of rows">
+      <td>{{ r.nombre }}</td>
+      <td>{{ r.stockActual }} {{ r.unidad }}</td>
+
+      <td>
+        <input
+          type="number"
+          min="0"
+          [(ngModel)]="r.stockContado"
+          placeholder="Contado"
+        />
+      </td>
+
+      <td>
+        <ng-container *ngIf="diferencia(r) !== null; else sinDato">
+          {{ diferencia(r) }}
+        </ng-container>
+        <ng-template #sinDato>-</ng-template>
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+<button (click)="guardar()" [disabled]="guardando">
+  {{ guardando ? "Guardando..." : "Guardar cierre" }}
+</button>

@@ -1,0 +1,36 @@
+<a routerLink="/app/cierres">← Volver al historial</a>
+
+<h2 *ngIf="cierre">Cierre: {{ cierre.fecha }}</h2>
+<p *ngIf="cargando">Cargando...</p>
+
+<div *ngIf="cierre && !cargando">
+  <p>
+    Productos: <b>{{ cierre.totalProductos }}</b> | Con diferencias:
+    <b>{{ cierre.conDiferencias }}</b>
+  </p>
+  <button (click)="exportarExcel()" class="btn-excel">
+    📄 Exportar a Excel
+  </button>
+
+  <table class="tabla">
+    <thead>
+      <tr>
+        <th>Producto</th>
+        <th>Teórico</th>
+        <th>Contado</th>
+        <th>Diferencia</th>
+      </tr>
+    </thead>
+
+    <tbody>
+      <tr *ngFor="let it of cierre.items">
+        <td>{{ it.productoId.nombre }}</td>
+        <td>{{ it.stockTeorico }}</td>
+        <td>{{ it.stockContado }}</td>
+        <td>{{ it.diferencia }}</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <p *ngIf="cierre.items.length === 0">Este cierre no tiene items.</p>
+</div>

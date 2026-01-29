@@ -1,0 +1,90 @@
+<h2>Nueva venta</h2>
+
+<div class="top">
+  <input
+    type="text"
+    [formControl]="form.controls.search"
+    placeholder="Buscar producto..."
+    autofocus
+  />
+
+  <select [formControl]="form.controls.medioPago">
+    <option value="efectivo">Efectivo</option>
+    <option value="transferencia">Transferencia</option>
+    <option value="point">Point (Posnet)</option>
+  </select>
+
+  <button
+    type="button"
+    (click)="confirmar()"
+    [disabled]="cargando() || carrito().length === 0"
+  >
+    Confirmar
+  </button>
+
+  <button type="button" (click)="limpiar()" [disabled]="cargando()">
+    Limpiar
+  </button>
+</div>
+
+<div class="layout">
+  <!-- Lista de productos -->
+  <section class="panel">
+    <h3>Productos</h3>
+
+    <div *ngIf="cargando()">Cargando...</div>
+
+    <div class="list">
+      <div class="row" *ngFor="let p of productosFiltrados()">
+        <div class="info">
+          <div class="name">{{ p.nombre }}</div>
+          <div class="meta">
+            Stock: <b>{{ stockDisponible(p) }}</b> · Precio:
+            <b>{{ p.precioVenta ?? 0 }}</b>
+          </div>
+        </div>
+
+        <button
+          type="button"
+          (click)="agregar(p)"
+          [disabled]="!puedeAgregar(p)"
+          class="btn"
+        >
+          Agregar
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Carrito -->
+  <section class="panel">
+    <h3>Carrito</h3>
+
+    <div *ngIf="carrito().length === 0" class="empty">
+      Agregá productos para empezar.
+    </div>
+
+    <div class="list" *ngIf="carrito().length > 0">
+      <div class="row" *ngFor="let item of carrito()">
+        <div class="info">
+          <div class="name">{{ item.producto.nombre }}</div>
+          <div class="meta">
+            Precio: <b>{{ item.producto.precioVenta ?? 0 }}</b> · Subtotal:
+            <b>{{ (item.producto.precioVenta ?? 0) * item.cantidad }}</b>
+          </div>
+        </div>
+
+        <div class="qty">
+          <button type="button" (click)="disminuir(item)">-</button>
+          <span>{{ item.cantidad }}</span>
+          <button type="button" (click)="aumentar(item)">+</button>
+          <button type="button" (click)="quitar(item)" class="danger">x</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="total">
+      Total: <b>${{ total() }}</b>
+    </div>
+  </section>
+</div>

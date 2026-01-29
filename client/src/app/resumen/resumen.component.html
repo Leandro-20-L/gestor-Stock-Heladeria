@@ -1,0 +1,14 @@
+<section class="kpis">
+  <div class="card alerta" [class.ok]="productosStockBajo.length === 0">
+    <h3>⚠️ Productos con stock bajo</h3>
+    <p class="numero">{{ productosStockBajo.length }}</p>
+
+    <ul *ngIf="productosStockBajo.length > 0">
+      <li *ngFor="let p of productosStockBajo | slice: 0 : 5">
+        {{ p.nombre }} — {{ p.stockActual }} {{ p.unidad }}
+      </li>
+    </ul>
+
+    <p *ngIf="productosStockBajo.length === 0">✅ Todo OK</p>
+  </div>
+</section>

@@ -1,0 +1,24 @@
+.kpis {
+  display: grid;
+  gap: 16px;
+}
+.card {
+  padding: 16px;
+  border-radius: 12px;
+  border: 1px solid #ddd;
+}
+.alerta {
+  border-left: 6px solid #e74c3c;
+}
+.ok {
+  border-left-color: #2ecc71;
+}
+.numero {
+  font-size: 32px;
+  margin: 8px 0;
+  font-weight: 700;
+}
+ul {
+  margin: 0;
+  padding-left: 18px;
+}

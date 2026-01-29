@@ -1,0 +1,10 @@
+# Dependencias raíz
+node_modules/
+
+# Variables de entorno
+.env
+.env.*
+
+# Builds
+dist/
+.angular/

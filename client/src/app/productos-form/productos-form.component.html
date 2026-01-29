@@ -1,0 +1,54 @@
+<h2>{{ esEdicion() ? "Editar producto" : "Nuevo producto" }}</h2>
+
+<form [formGroup]="form" (ngSubmit)="guardar()">
+  <div class="grid">
+    <label>
+      Nombre
+      <input formControlName="nombre" />
+    </label>
+
+    <label>
+      Categoría
+      <select formControlName="categoria">
+        <option value="helado">Helado</option>
+        <option value="bebida">Bebida</option>
+        <option value="comida">Comida</option>
+      </select>
+    </label>
+
+    <label>
+      Unidad
+      <select formControlName="unidad">
+        <option value="kg">kg</option>
+        <option value="unidad">unidad</option>
+      </select>
+    </label>
+
+    <label>
+      Precio venta
+      <input type="number" formControlName="precioVenta" />
+    </label>
+
+    <label>
+      Costo
+      <input type="number" formControlName="costo" />
+    </label>
+
+    <label>
+      Stock actual
+      <input type="number" formControlName="stockActual" />
+    </label>
+
+    <label>
+      Stock mínimo
+      <input type="number" formControlName="stockMinimo" />
+    </label>
+  </div>
+
+  <div class="actions">
+    <button type="button" (click)="volver()">Cancelar</button>
+    <button type="submit" [disabled]="form.invalid">Guardar</button>
+  </div>
+</form>
+
+<pre *ngIf="debug">{{ form.value | json }}</pre>

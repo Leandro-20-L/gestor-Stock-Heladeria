@@ -1,0 +1,190 @@
+:host {
+  display: block;
+  color: #fff;
+}
+
+h2 {
+  margin: 0 0 14px;
+  font-size: 22px;
+  font-weight: 900;
+  letter-spacing: 0.2px;
+}
+
+/* Header / fecha */
+label {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+
+  padding: 12px 14px;
+  border-radius: 16px;
+  margin-bottom: 14px;
+
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(20, 22, 28, 0.75);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 12px 26px rgba(0, 0, 0, 0.35);
+
+  font-weight: 900;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+label input[type="date"] {
+  padding: 10px 12px;
+  border-radius: 14px;
+
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.04);
+  color: #fff;
+
+  outline: none;
+  transition: 0.16s ease;
+
+  &:focus {
+    border-color: rgba(255, 214, 10, 0.55);
+    box-shadow: 0 0 0 4px rgba(255, 214, 10, 0.12);
+  }
+}
+
+/* Tabla estilo "cards" */
+.tabla {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0 10px;
+}
+
+.tabla thead th {
+  text-align: left;
+  font-size: 12px;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.6);
+  padding: 0 10px 6px;
+}
+
+.tabla tbody tr {
+  background: rgba(20, 22, 28, 0.72);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.3);
+  transition: 0.16s ease;
+}
+
+.tabla tbody td {
+  padding: 12px 10px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.tabla tbody td:first-child {
+  border-left: 1px solid rgba(255, 255, 255, 0.06);
+  border-top-left-radius: 16px;
+  border-bottom-left-radius: 16px;
+  font-weight: 900;
+}
+
+.tabla tbody td:last-child {
+  border-right: 1px solid rgba(255, 255, 255, 0.06);
+  border-top-right-radius: 16px;
+  border-bottom-right-radius: 16px;
+  font-weight: 900;
+}
+
+/* Hover */
+.tabla tbody tr:hover {
+  transform: translateY(-1px);
+  border-color: rgba(255, 214, 10, 0.2);
+
+  td {
+    background: rgba(255, 214, 10, 0.06);
+  }
+}
+
+/* Input contado */
+.tabla input[type="number"] {
+  width: 140px;
+  max-width: 100%;
+  padding: 10px 12px;
+  border-radius: 14px;
+
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.04);
+  color: #fff;
+
+  outline: none;
+  transition: 0.16s ease;
+
+  &::placeholder {
+    color: rgba(255, 255, 255, 0.45);
+  }
+
+  &:focus {
+    border-color: rgba(255, 214, 10, 0.55);
+    box-shadow: 0 0 0 4px rgba(255, 214, 10, 0.12);
+  }
+}
+
+/* Botón guardar */
+button {
+  margin-top: 14px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  border: none;
+  cursor: pointer;
+  font-weight: 900;
+
+  background: linear-gradient(180deg, #ffd60a, #ffb703);
+  color: #151515;
+  box-shadow: 0 10px 22px rgba(255, 214, 10, 0.16);
+
+  transition: 0.16s ease;
+
+  &:hover {
+    transform: translateY(-1px);
+  }
+
+  &:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+  }
+}
+
+/* Responsive: tabla a cards */
+@media (max-width: 900px) {
+  .tabla,
+  .tabla thead,
+  .tabla tbody,
+  .tabla th,
+  .tabla td,
+  .tabla tr {
+    display: block;
+  }
+
+  .tabla thead {
+    display: none;
+  }
+
+  .tabla tbody tr {
+    border-radius: 16px;
+  }
+
+  .tabla tbody td {
+    border: none !important;
+    padding: 10px 12px;
+  }
+
+  .tabla tbody td::before {
+    content: attr(data-label);
+    display: block;
+    font-size: 11px;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.55);
+    margin-bottom: 4px;
+    letter-spacing: 0.3px;
+  }
+
+  .tabla input[type="number"] {
+    width: 100%;
+  }
+}

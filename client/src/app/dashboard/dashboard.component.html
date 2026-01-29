@@ -1,0 +1,36 @@
+<div class="layout">
+  <aside class="sidebar">
+    <h3>Heladería PM</h3>
+
+    <nav>
+      <a routerLink="/app/ventas/nueva" routerLinkActive="active"
+        >Nueva venta</a
+      >
+      <a
+        routerLink="/app/ventas"
+        routerLinkActive="active"
+        [routerLinkActiveOptions]="{ exact: false }"
+        >Ventas</a
+      >
+
+      <a routerLink="/app/productos" routerLinkActive="active"> Productos </a>
+      <a
+        routerLink="/app/resumen"
+        routerLinkActive="active"
+        [routerLinkActiveOptions]="{ exact: true }"
+        >Resumen</a
+      >
+
+      <a routerLink="/app/cierre" routerLinkActive="active">Cierre del día</a>
+      <a routerLink="/app/cierres" routerLinkActive="active"
+        >Historial de cierres</a
+      >
+    </nav>
+
+    <button (click)="logout()">Cerrar sesión</button>
+  </aside>
+
+  <main class="content">
+    <router-outlet></router-outlet>
+  </main>
+</div>
