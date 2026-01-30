@@ -8,6 +8,7 @@ import {
   Validators,
 } from '@angular/forms';
 import { CommonModule } from '@angular/common';
+import { ToastrService } from 'ngx-toastr';
 
 @Component({
   selector: 'app-registro',
@@ -19,6 +20,7 @@ export class RegistroComponent {
   enviando = false;
   errorMsg = '';
   private fb = inject(FormBuilder);
+  private toast = inject(ToastrService);
   registerForm = this.fb.group({
     nombre: [
       '',
@@ -49,9 +51,14 @@ export class RegistroComponent {
   }
 
   onRegister() {
+    console.log(
+      'Botón presionado. Estado del formulario:',
+      this.registerForm.valid,
+    ); // <--- AGREGA ESTO
     this.errorMsg = '';
     if (this.registerForm.invalid) {
       this.registerForm.markAllAsTouched();
+      this.toast.warning('Por favor completa todos los campos', 'Atención'); // <--- Uso simple
       return;
     }
 
@@ -62,11 +69,12 @@ export class RegistroComponent {
     this.authService.register(nombre!, email!, password!).subscribe({
       next: () => {
         this.enviando = false;
+        this.toast.success('¡Registro exitoso! Redirigiendo...', 'Éxito'); // <--- Mensaje verde
         this.router.navigateByUrl('/login');
       },
       error: (e) => {
         this.enviando = false;
-        this.errorMsg = e?.error?.message ?? 'No se pudo registrar';
+        this.toast.error(e?.error?.message || 'No se pudo registrar', 'Error'); // <--- Mensaje rojo
       },
     });
   }

@@ -6,6 +6,7 @@ export const routes: Routes = [
     path: 'login',
     loadComponent: () =>
       import('./login/login.component').then((m) => m.LoginComponent),
+    data: { animation: 'LoginPage' },
   },
 
   {
@@ -21,6 +22,7 @@ export const routes: Routes = [
       import('./dashboard/dashboard.component').then(
         (m) => m.DashboardComponent,
       ),
+    data: { animation: 'DashboardPage' },
     children: [
       {
         path: 'resumen',

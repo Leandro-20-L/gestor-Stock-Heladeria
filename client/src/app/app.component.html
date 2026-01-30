@@ -1,3 +1,12 @@
+<ngx-spinner
+  type="ball-spin-clockwise"
+  size="medium"
+  bdColor="rgba(0, 0, 0, 0.8)"
+  color="#fff"
+>
+  <p style="color: white">Iniciando sesión...</p>
+</ngx-spinner>
 
-
-<router-outlet />
+<div [@routeAnimations]="getRouteAnimationData()">
+  <router-outlet />
+</div>

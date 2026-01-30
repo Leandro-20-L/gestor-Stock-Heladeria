@@ -9,6 +9,7 @@ import {
   ReactiveFormsModule,
   Validators,
 } from '@angular/forms';
+import { NgxSpinnerService } from 'ngx-spinner';
 
 @Component({
   selector: 'app-login',
@@ -20,6 +21,7 @@ export class LoginComponent {
   email = '';
   password = '';
   private fb = inject(FormBuilder);
+  private spinner = inject(NgxSpinnerService);
 
   loginForm = this.fb.group({
     email: ['', [Validators.required, Validators.email]],
@@ -32,6 +34,8 @@ export class LoginComponent {
   ) {}
 
   onLogin() {
+    this.spinner.show();
+
     if (this.loginForm.invalid) {
       this.loginForm.markAllAsTouched();
       return;
@@ -39,8 +43,14 @@ export class LoginComponent {
 
     const { email, password } = this.loginForm.value;
     this.auth.login(email!, password!).subscribe({
-      next: () => this.router.navigateByUrl('/dashboard'),
-      error: () => alert('Credenciales inválidas'),
+      next: () => {
+        this.spinner.hide(); // <-- Ocultar
+        this.router.navigateByUrl('/dashboard');
+      },
+      error: () => {
+        this.spinner.hide();
+        alert('Credenciales inválidas');
+      },
     });
   }
 
