@@ -35,6 +35,7 @@ export const routes: Routes = [
           import('./productos-list/productos-list.component').then(
             (m) => m.ProductosListComponent,
           ),
+        data: { animation: 'ProductosPage' },
       },
       {
         path: 'productos/nuevo',
@@ -42,6 +43,7 @@ export const routes: Routes = [
           import('./productos-form/productos-form.component').then(
             (m) => m.ProductosFormComponent,
           ),
+        data: { animation: 'NewProductosPage' },
       },
       {
         path: 'ventas',
@@ -49,6 +51,7 @@ export const routes: Routes = [
           import('./ventas/ventas-list/ventas-list.component').then(
             (m) => m.VentasListComponent,
           ),
+        data: { animation: 'VentasPage' },
       },
       {
         path: 'ventas/nueva',
@@ -56,6 +59,7 @@ export const routes: Routes = [
           import('./ventas/ventas-form/ventas-form.component').then(
             (m) => m.VentasFormComponent,
           ),
+        data: { animation: 'NewVentaPage' },
       },
       {
         path: 'cierre',
@@ -63,6 +67,7 @@ export const routes: Routes = [
           import('./cierre-del-dia/cierre-del-dia.component').then(
             (m) => m.CierreDelDiaComponent,
           ),
+        data: { animation: 'CierrePage' },
       },
       {
         path: 'cierres',
@@ -70,6 +75,7 @@ export const routes: Routes = [
           import('./cierre-list/cierre-list.component').then(
             (m) => m.CierreListComponent,
           ),
+        data: { animation: 'CierresPage' },
       },
       {
         path: 'cierres/:id',
@@ -77,6 +83,7 @@ export const routes: Routes = [
           import('./cierre-detalle/cierre-detalle.component').then(
             (m) => m.CierreDetalleComponent,
           ),
+        data: { animation: 'CierreIdPage' },
       },
 
       { path: '', pathMatch: 'full', redirectTo: 'ventas/nueva' },
