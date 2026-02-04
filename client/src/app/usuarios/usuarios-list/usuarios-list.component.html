@@ -1,0 +1,154 @@
+<div class="header">
+  <div>
+    <h2>Usuarios</h2>
+    <p class="sub">Solo admin · gestioná empleados y permisos</p>
+  </div>
+
+  <button class="btn-primary" type="button" (click)="abrirCrear()">
+    + Nuevo usuario
+  </button>
+</div>
+
+<div class="top">
+  <input
+    type="text"
+    placeholder="Buscar por nombre, email o rol..."
+    [value]="q()"
+    (input)="q.set(($any($event.target).value || '').toString())"
+  />
+
+  <label class="check">
+    <input
+      type="checkbox"
+      [checked]="verInactivos()"
+      (change)="verInactivos.set($any($event.target).checked)"
+    />
+    Ver inactivos
+  </label>
+
+  <button type="button" (click)="cargar()" [disabled]="cargando()">
+    Recargar
+  </button>
+</div>
+
+<div *ngIf="errorMsg()" class="alert">{{ errorMsg() }}</div>
+<div *ngIf="cargando()" class="loading">Cargando...</div>
+
+<div class="tabla" *ngIf="!cargando()">
+  <div class="fila header-row">
+    <div>Nombre</div>
+    <div>Email</div>
+    <div>Rol</div>
+    <div>Estado</div>
+    <div></div>
+  </div>
+
+  <div class="fila" *ngFor="let u of usuariosFiltrados()">
+    <div class="name">
+      {{ u.nombre }}
+      <small class="muted">· {{ u.createdAt | date: "dd/MM HH:mm" }}</small>
+    </div>
+
+    <div class="email">{{ u.email }}</div>
+
+    <div>
+      <select
+        class="select"
+        [value]="u.rol"
+        (change)="cambiarRol(u, $any($event.target).value)"
+      >
+        <option value="admin">admin</option>
+        <option value="empleado">empleado</option>
+      </select>
+    </div>
+
+    <div>
+      <span class="badge" [class.badge-off]="!u.activo">
+        {{ u.activo ? "Activo" : "Inactivo" }}
+      </span>
+    </div>
+
+    <div class="actions">
+      <button class="btn-ghost" type="button" (click)="toggleActivo(u)">
+        {{ u.activo ? "Desactivar" : "Activar" }}
+      </button>
+    </div>
+  </div>
+
+  <div class="empty" *ngIf="usuariosFiltrados().length === 0">
+    No hay usuarios para mostrar.
+  </div>
+</div>
+
+<!-- MODAL CREAR -->
+<div class="backdrop" *ngIf="mostrarForm()">
+  <div class="modal">
+    <div class="modal-head">
+      <h3>Nuevo usuario</h3>
+      <button class="x" type="button" (click)="cancelarCrear()">✕</button>
+    </div>
+
+    <form [formGroup]="form" (ngSubmit)="crear()">
+      <div class="grid">
+        <label>
+          Nombre
+          <input formControlName="nombre" placeholder="Ej: Juan Pérez" />
+          <small
+            class="err"
+            *ngIf="ctrl('nombre').touched && ctrl('nombre').invalid"
+          >
+            Mínimo 2 caracteres.
+          </small>
+        </label>
+
+        <label>
+          Email
+          <input formControlName="email" placeholder="ej: empleado@pm.com" />
+          <small
+            class="err"
+            *ngIf="ctrl('email').touched && ctrl('email').invalid"
+          >
+            Email válido requerido.
+          </small>
+        </label>
+
+        <label>
+          Contraseña
+          <input
+            type="password"
+            formControlName="password"
+            placeholder="mínimo 6"
+          />
+          <small
+            class="err"
+            *ngIf="ctrl('password').touched && ctrl('password').invalid"
+          >
+            Mínimo 6 caracteres.
+          </small>
+        </label>
+
+        <label>
+          Rol
+          <select formControlName="rol">
+            <option value="empleado">empleado</option>
+            <option value="admin">admin</option>
+          </select>
+        </label>
+      </div>
+
+      <div class="modal-actions">
+        <button type="button" class="btn-secondary" (click)="cancelarCrear()">
+          Cancelar
+        </button>
+
+        <button
+          type="submit"
+          class="btn-primary"
+          [disabled]="form.invalid || creando()"
+        >
+          {{ creando() ? "Creando..." : "Crear" }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

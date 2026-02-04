@@ -3,37 +3,60 @@ import { HttpClient } from '@angular/common/http';
 import { tap } from 'rxjs';
 import { environment } from '../../environments/environment';
 
-export type AuthResponse = {
+export type Role = 'admin' | 'empleado';
+
+export type AuthUser = {
+  id: string;
+  nombre: string;
+  email: string;
+  rol: Role;
+};
+
+export type LoginResponse = {
   access_token: string;
+  user: AuthUser;
 };
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
-  private readonly tokenKey = 'access_token';
+  private readonly tokenKey = 'token';
+  private readonly userKey = 'user';
 
   constructor(private http: HttpClient) {}
 
-  register(nombre: string, email: string, password: string) {
-    return this.http
-      .post<AuthResponse>(`${environment.apiUrl}/auth/register`, { nombre, email, password })
-      .pipe(tap(res => localStorage.setItem(this.tokenKey, res.access_token)));
-  }
-
   login(email: string, password: string) {
     return this.http
-      .post<AuthResponse>(`${environment.apiUrl}/auth/login`, { email, password })
-      .pipe(tap(res => localStorage.setItem(this.tokenKey, res.access_token)));
+      .post<any>(`${environment.apiUrl}/auth/login`, { email, password })
+      .pipe(
+        tap((res) => {
+          localStorage.setItem(this.tokenKey, res.access_token);
+          localStorage.setItem(this.userKey, JSON.stringify(res.user));
+        }),
+      );
   }
 
   logout() {
     localStorage.removeItem(this.tokenKey);
+    localStorage.removeItem(this.userKey);
   }
 
-  get token(): string | null {
+  get token() {
     return localStorage.getItem(this.tokenKey);
   }
-
   isLoggedIn(): boolean {
     return !!this.token;
+  }
+
+  get user() {
+    const raw = localStorage.getItem(this.userKey);
+    return raw ? JSON.parse(raw) : null;
+  }
+
+  get rol(): 'admin' | 'empleado' | null {
+    return this.user?.rol ?? null;
+  }
+
+  isAdmin() {
+    return this.rol === 'admin';
   }
 }

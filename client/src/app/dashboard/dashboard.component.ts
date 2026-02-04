@@ -8,10 +8,18 @@ import {
   RouterOutlet,
 } from '@angular/router';
 import { zoomAnimation } from '../route-animations';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-dashboard',
-  imports: [RouterOutlet, RouterLink, RouterLinkActive],
+  imports: [
+    RouterOutlet,
+    RouterLink,
+    RouterLinkActive,
+    CommonModule,
+    FormsModule,
+  ],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.scss',
   animations: [zoomAnimation],
@@ -26,12 +34,16 @@ export class DashboardComponent {
     ];
   }
   constructor(
-    private auth: AuthService,
+    public auth: AuthService,
     private router: Router,
   ) {}
 
   logout() {
     this.auth.logout(); // borrar token
     this.router.navigateByUrl('/login');
+  }
+
+  get esAdmin() {
+    return this.auth.isAdmin();
   }
 }

@@ -1,36 +1,47 @@
-<h2>Historial de cierres</h2>
+<div class="page">
+  <div class="header">
+    <div>
+      <h2>Historial de cierres</h2>
+      <p class="sub">Control diario de stock · solo admin</p>
+    </div>
+  </div>
 
-<p *ngIf="cargando">Cargando...</p>
+  <div *ngIf="cargando" class="loading">Cargando cierres...</div>
 
-<table class="tabla" *ngIf="!cargando && cierres.length > 0">
-  <thead>
-    <tr>
-      <th>Fecha</th>
-      <th>Productos</th>
-      <th>Con diferencias</th>
-      <th></th>
-    </tr>
-  </thead>
+  <div class="tabla" *ngIf="!cargando && cierres.length > 0">
+    <div class="fila header-row">
+      <div>Fecha</div>
+      <div>Productos</div>
+      <div>Diferencias</div>
+      <div></div>
+    </div>
 
-  <tbody>
-    <tr *ngFor="let c of cierres">
-      <td>{{ c.fecha }}</td>
-      <td>{{ c.totalProductos }}</td>
-      <td>
+    <div class="fila" *ngFor="let c of cierres">
+      <div class="fecha">{{ c.fecha }}</div>
+
+      <div>
+        <b>{{ c.totalProductos }}</b>
+      </div>
+
+      <div>
         <span
+          class="badge"
           [class.ok]="c.conDiferencias === 0"
           [class.bad]="c.conDiferencias > 0"
         >
-          {{ c.conDiferencias }}
+          {{ c.conDiferencias === 0 ? "OK" : c.conDiferencias + " dif." }}
         </span>
-      </td>
-      <td>
-        <a [routerLink]="['/app/cierres', c._id]">Ver detalle</a>
-      </td>
-    </tr>
-  </tbody>
-</table>
+      </div>
 
-<p *ngIf="!cargando && cierres.length === 0">
-  Todavía no hay cierres guardados.
-</p>
+      <div class="actions">
+        <a class="btn-ghost" [routerLink]="['/app/cierres', c._id]">
+          Ver detalle
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <div class="empty" *ngIf="!cargando && cierres.length === 0">
+    Todavía no hay cierres guardados.
+  </div>
+</div>

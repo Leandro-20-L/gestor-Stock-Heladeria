@@ -7,6 +7,8 @@ import { AuthModule } from './auth/auth.module';
 import { ProductosModule } from './productos/productos.module';
 import { VentasModule } from './ventas/ventas.module';
 import { CierresModule } from './cierres/cierres.module';
+import { UsuariosModule } from './usuarios/usuarios.module';
+import { StatsModule } from './stats/stats.module';
 
 @Module({
   imports: [
@@ -37,6 +39,8 @@ import { CierresModule } from './cierres/cierres.module';
     ProductosModule,
     VentasModule,
     CierresModule,
+    UsuariosModule,
+    StatsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

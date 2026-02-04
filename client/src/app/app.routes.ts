@@ -1,5 +1,6 @@
 import { Routes } from '@angular/router';
 import { authGuard } from './auth/auth.guard';
+import { adminGuard } from './guards/admin.guard';
 
 export const routes: Routes = [
   {
@@ -7,12 +8,6 @@ export const routes: Routes = [
     loadComponent: () =>
       import('./login/login.component').then((m) => m.LoginComponent),
     data: { animation: 'LoginPage' },
-  },
-
-  {
-    path: 'register',
-    loadComponent: () =>
-      import('./registro/registro.component').then((m) => m.RegistroComponent),
   },
 
   {
@@ -26,11 +21,13 @@ export const routes: Routes = [
     children: [
       {
         path: 'resumen',
+        canActivate: [adminGuard],
         loadComponent: () =>
           import('./resumen/resumen.component').then((m) => m.ResumenComponent),
       },
       {
         path: 'productos',
+        canActivate: [adminGuard],
         loadComponent: () =>
           import('./productos-list/productos-list.component').then(
             (m) => m.ProductosListComponent,
@@ -39,6 +36,7 @@ export const routes: Routes = [
       },
       {
         path: 'productos/nuevo',
+        canActivate: [adminGuard],
         loadComponent: () =>
           import('./productos-form/productos-form.component').then(
             (m) => m.ProductosFormComponent,
@@ -84,6 +82,14 @@ export const routes: Routes = [
             (m) => m.CierreDetalleComponent,
           ),
         data: { animation: 'CierreIdPage' },
+      },
+      {
+        path: 'usuarios',
+        canActivate: [adminGuard],
+        loadComponent: () =>
+          import('./usuarios/usuarios-list/usuarios-list.component').then(
+            (m) => m.UsuariosListComponent,
+          ),
       },
 
       { path: '', pathMatch: 'full', redirectTo: 'ventas/nueva' },

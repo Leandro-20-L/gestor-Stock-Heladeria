@@ -1,36 +1,89 @@
-<a routerLink="/app/cierres">← Volver al historial</a>
+<div class="page">
+  <div class="topbar">
+    <a class="btn-ghost" routerLink="/app/cierres">← Volver</a>
 
-<h2 *ngIf="cierre">Cierre: {{ cierre.fecha }}</h2>
-<p *ngIf="cargando">Cargando...</p>
+    <button
+      *ngIf="cierre && !cargando"
+      (click)="exportarExcel()"
+      class="btn-primary"
+      type="button"
+    >
+      📄 Exportar a Excel
+    </button>
+  </div>
 
-<div *ngIf="cierre && !cargando">
-  <p>
-    Productos: <b>{{ cierre.totalProductos }}</b> | Con diferencias:
-    <b>{{ cierre.conDiferencias }}</b>
-  </p>
-  <button (click)="exportarExcel()" class="btn-excel">
-    📄 Exportar a Excel
-  </button>
+  <div class="header" *ngIf="cierre">
+    <div>
+      <h2>Cierre: {{ cierre.fecha }}</h2>
+      <p class="sub">Detalle del control de stock (teórico vs contado)</p>
+    </div>
+  </div>
 
-  <table class="tabla">
-    <thead>
-      <tr>
-        <th>Producto</th>
-        <th>Teórico</th>
-        <th>Contado</th>
-        <th>Diferencia</th>
-      </tr>
-    </thead>
+  <div *ngIf="cargando" class="loading">Cargando cierre...</div>
 
-    <tbody>
-      <tr *ngFor="let it of cierre.items">
-        <td>{{ it.productoId.nombre }}</td>
-        <td>{{ it.stockTeorico }}</td>
-        <td>{{ it.stockContado }}</td>
-        <td>{{ it.diferencia }}</td>
-      </tr>
-    </tbody>
-  </table>
+  <ng-container *ngIf="cierre && !cargando">
+    <div class="stats">
+      <div class="stat">
+        <div class="label">Productos</div>
+        <div class="value">{{ cierre.totalProductos }}</div>
+      </div>
 
-  <p *ngIf="cierre.items.length === 0">Este cierre no tiene items.</p>
+      <div class="stat" [class.warn]="cierre.conDiferencias > 0">
+        <div class="label">Con diferencias</div>
+        <div class="value">
+          {{ cierre.conDiferencias }}
+          <span
+            class="chip"
+            [class.ok]="cierre.conDiferencias === 0"
+            [class.bad]="cierre.conDiferencias > 0"
+          >
+            {{ cierre.conDiferencias === 0 ? "OK" : "Revisar" }}
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <div class="tabla" *ngIf="cierre.items.length > 0">
+      <div class="fila header-row">
+        <div>Producto</div>
+        <div>Teórico</div>
+        <div>Contado</div>
+        <div>Diferencia</div>
+      </div>
+
+      <div class="fila" *ngFor="let it of cierre.items">
+        <div class="producto">
+          {{ it.productoId.nombre }}
+        </div>
+
+        <div class="num">
+          {{ it.stockTeorico }}
+        </div>
+
+        <div class="num">
+          {{ it.stockContado }}
+        </div>
+
+        <div class="dif">
+          <span
+            class="badge"
+            [class.ok]="it.diferencia === 0"
+            [class.bad]="it.diferencia !== 0"
+          >
+            {{
+              it.diferencia === 0
+                ? "0"
+                : it.diferencia > 0
+                  ? "+" + it.diferencia
+                  : it.diferencia
+            }}
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <div class="empty" *ngIf="cierre.items.length === 0">
+      Este cierre no tiene items.
+    </div>
+  </ng-container>
 </div>

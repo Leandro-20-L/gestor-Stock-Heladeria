@@ -13,8 +13,11 @@
         >Ventas</a
       >
 
-      <a routerLink="/app/productos" routerLinkActive="active"> Productos </a>
+      <a *ngIf="esAdmin" routerLink="/app/productos" routerLinkActive="active">
+        Productos
+      </a>
       <a
+        *ngIf="esAdmin"
         routerLink="/app/resumen"
         routerLinkActive="active"
         [routerLinkActiveOptions]="{ exact: true }"
@@ -25,6 +28,13 @@
       <a routerLink="/app/cierres" routerLinkActive="active"
         >Historial de cierres</a
       >
+      <a
+        *ngIf="auth.isAdmin()"
+        routerLink="/app/usuarios"
+        routerLinkActive="active"
+      >
+        Usuarios
+      </a>
     </nav>
 
     <button (click)="logout()">Cerrar sesión</button>

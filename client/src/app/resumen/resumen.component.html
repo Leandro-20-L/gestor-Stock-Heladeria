@@ -1,14 +1,63 @@
-<section class="kpis">
-  <div class="card alerta" [class.ok]="productosStockBajo.length === 0">
-    <h3>⚠️ Productos con stock bajo</h3>
-    <p class="numero">{{ productosStockBajo.length }}</p>
+<div class="page">
+  <div class="head">
+    <div>
+      <h2>Resumen (Admin)</h2>
+      <p class="sub">Ventas agregadas por rango</p>
+    </div>
 
-    <ul *ngIf="productosStockBajo.length > 0">
-      <li *ngFor="let p of productosStockBajo | slice: 0 : 5">
-        {{ p.nombre }} — {{ p.stockActual }} {{ p.unidad }}
-      </li>
-    </ul>
+    <div class="filters">
+      <label>
+        Desde
+        <input type="date" [(ngModel)]="from" />
+      </label>
 
-    <p *ngIf="productosStockBajo.length === 0">✅ Todo OK</p>
+      <label>
+        Hasta
+        <input type="date" [(ngModel)]="to" />
+      </label>
+
+      <button (click)="cargar()" [disabled]="cargando()">Actualizar</button>
+    </div>
   </div>
-</section>
+
+  <div class="loading" *ngIf="cargando()">Cargando...</div>
+
+  <ng-container *ngIf="data() as d">
+    <section class="cards">
+      <div class="card">
+        <div class="k">Total facturado</div>
+        <div class="v">$ {{ d.totalFacturado }}</div>
+        <div class="s">solo confirmadas</div>
+      </div>
+
+      <div class="card">
+        <div class="k">Ventas confirmadas</div>
+        <div class="v">{{ d.cantidadConfirmadas }}</div>
+        <div class="s">en el rango</div>
+      </div>
+
+      <div class="card">
+        <div class="k">Ventas anuladas</div>
+        <div class="v">{{ d.cantidadAnuladas }}</div>
+        <div class="s">en el rango</div>
+      </div>
+    </section>
+
+    <section class="grid">
+      <div class="panel">
+        <div class="panel-title">Total por día</div>
+        <canvas id="chartDia"></canvas>
+      </div>
+
+      <div class="panel">
+        <div class="panel-title">Medios de pago</div>
+        <canvas id="chartPago"></canvas>
+      </div>
+
+      <div class="panel full">
+        <div class="panel-title">Top productos (por total vendido)</div>
+        <canvas id="chartTop"></canvas>
+      </div>
+    </section>
+  </ng-container>
+</div>
