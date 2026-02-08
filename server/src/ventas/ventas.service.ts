@@ -102,4 +102,44 @@ export class VentasService {
   remove(id: number) {
     return `This action removes a #${id} venta`;
   }
+
+  async anular(id: string) {
+    const venta = await this.ventaModel.findById(id).exec();
+    if (!venta) throw new NotFoundException('Venta no encontrada');
+
+    if (venta.estado === 'anulada') {
+      throw new BadRequestException('La venta ya está anulada');
+    }
+
+    venta.estado = 'anulada';
+    await venta.save();
+
+    return {
+      message: 'Venta anulada',
+      id: venta.id,
+      estado: venta.estado,
+    };
+  }
+
+  async totalConfirmadasPorDia(fecha: string): Promise<number> {
+    const from = new Date(`${fecha}T00:00:00.000Z`);
+    const to = new Date(`${fecha}T23:59:59.999Z`);
+
+    const res = await this.ventaModel.aggregate<{ total: number }>([
+      {
+        $match: {
+          estado: 'confirmada',
+          createdAt: { $gte: from, $lte: to },
+        },
+      },
+      {
+        $group: {
+          _id: null,
+          total: { $sum: '$total' },
+        },
+      },
+    ]);
+
+    return res[0]?.total ?? 0;
+  }
 }

@@ -10,6 +10,7 @@ export interface CierreItemInput {
 
 export interface CrearCierreDto {
   fecha: string; // YYYY-MM-DD
+  totalCajaContada: number;
   items: CierreItemInput[];
 }
 

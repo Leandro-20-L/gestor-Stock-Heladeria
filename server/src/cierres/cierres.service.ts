@@ -13,6 +13,7 @@ import {
 import { Model, Types } from 'mongoose';
 import { CierreDocument } from './schemas/cierre.schema';
 import { InjectModel } from '@nestjs/mongoose';
+import { Venta, VentaDocument } from 'src/ventas/schemas/venta.schema';
 
 type ProductoMin = {
   _id: Types.ObjectId;
@@ -26,6 +27,7 @@ export class CierresService {
     private readonly cierreModel: Model<CierreDocument>,
     @InjectModel(Producto.name)
     private readonly productoModel: Model<ProductoDocument>,
+    @InjectModel(Venta.name) private ventaModel: Model<VentaDocument>,
   ) {}
   async create(dto: CreateCierreDto) {
     const existente = await this.cierreModel
@@ -66,12 +68,34 @@ export class CierresService {
 
     const conDiferencias = itemsFinal.filter((x) => x.diferencia !== 0).length;
 
+    // ✅ TOTAL VENTAS TEÓRICO DEL DÍA (confirmadas)
+    const from = new Date(`${dto.fecha}T00:00:00.000Z`);
+    const to = new Date(`${dto.fecha}T23:59:59.999Z`);
+
+    const agg = await this.ventaModel.aggregate<{ total: number }>([
+      {
+        $match: {
+          estado: 'confirmada',
+          createdAt: { $gte: from, $lte: to },
+        },
+      },
+      { $group: { _id: null, total: { $sum: '$total' } } },
+    ]);
+
+    const totalVentasTeorico = agg[0]?.total ?? 0;
+
+    const totalCajaContada = Number(dto.totalCajaContada ?? 0);
+    const diferenciaCaja = totalCajaContada - totalVentasTeorico;
+
     const cierre = await this.cierreModel.create({
       fecha: dto.fecha,
       usuarioId: dto.usuarioId ? new Types.ObjectId(dto.usuarioId) : undefined,
       items: itemsFinal,
       totalProductos: itemsFinal.length,
       conDiferencias,
+      totalVentasTeorico,
+      totalCajaContada,
+      diferenciaCaja,
     });
 
     return cierre;

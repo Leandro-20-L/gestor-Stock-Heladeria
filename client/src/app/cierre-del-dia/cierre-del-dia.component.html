@@ -2,8 +2,25 @@
 
 <label>
   Fecha:
-  <input type="date" [(ngModel)]="fecha" />
+  <input type="date" [(ngModel)]="fecha" (change)="cargarTotalDelDia()" />
 </label>
+<div class="caja">
+  <p>
+    Total vendido (sistema):
+    <b *ngIf="!cargandoTotal">{{ totalVentasTeorico ?? "-" }}</b>
+    <span *ngIf="cargandoTotal">Cargando...</span>
+  </p>
+
+  <label>
+    Total contado en caja:
+    <input type="number" min="0" [(ngModel)]="totalCajaContada" />
+  </label>
+
+  <p *ngIf="totalVentasTeorico !== null && totalCajaContada !== null">
+    Diferencia:
+    <b>{{ totalCajaContada - totalVentasTeorico }}</b>
+  </p>
+</div>
 
 <table class="tabla">
   <thead>
@@ -39,6 +56,6 @@
   </tbody>
 </table>
 
-<button (click)="guardar()" [disabled]="guardando">
+<button (click)="guardar()" [disabled]="guardando || totalCajaContada === null">
   {{ guardando ? "Guardando..." : "Guardar cierre" }}
 </button>

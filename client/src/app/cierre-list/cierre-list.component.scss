@@ -45,7 +45,7 @@
 
 .header-row {
   display: grid;
-  grid-template-columns: 1fr 0.8fr 0.9fr 0.8fr;
+  grid-template-columns: 1.1fr 0.7fr 0.9fr 0.9fr 0.9fr 0.9fr 0.9fr;
   padding: 0 10px 6px;
   font-size: 12px;
   font-weight: 800;
@@ -56,7 +56,7 @@
 
 .fila {
   display: grid;
-  grid-template-columns: 1fr 0.8fr 0.9fr 0.8fr;
+  grid-template-columns: 1.1fr 0.7fr 0.9fr 0.9fr 0.9fr 0.9fr 0.9fr;
   align-items: center;
   gap: 10px;
 
@@ -146,6 +146,9 @@
   }
 
   .actions {
+    justify-content: flex-start;
+  }
+  .money {
     justify-content: flex-start;
   }
 }

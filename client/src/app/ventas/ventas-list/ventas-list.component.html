@@ -46,7 +46,17 @@
         <b>{{ v.total }}</b>
       </div>
       <div>{{ v.estado }}</div>
-      <div>
+      <div class="buttons">
+        <button
+          type="button"
+          *ngIf="v.estado === 'confirmada'"
+          (click)="anular(v)"
+        >
+          Anular
+        </button>
+        <span *ngIf="v.estado === 'anulada'" class="badge-anulada">
+          Anulada
+        </span>
         <button type="button" (click)="toggleDetalle(v._id)">
           {{ abiertaId() === v._id ? "Ocultar" : "Detalle" }}
         </button>

@@ -40,7 +40,7 @@
       <td>{{ p.stockActual ?? "-" }}</td>
       <td>{{ p.activo ? "Sí" : "No" }}</td>
       <td class="actions">
-        <a [routerLink]="['/productos', p._id, 'editar']">Editar</a>
+        <a [routerLink]="['/app/productos/', p._id, 'editar']">Editar</a>
         <button (click)="desactivar(p)" [disabled]="!p.activo">
           Desactivar
         </button>

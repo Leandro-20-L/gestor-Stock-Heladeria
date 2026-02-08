@@ -45,4 +45,8 @@ export class VentasService {
   getVentaById(id: string) {
     return this.http.get<Venta>(`${this.ventasUrl}/${id}`);
   }
+
+  anularVenta(id: string) {
+    return this.http.patch(`${this.ventasUrl}/${id}/anular`, {});
+  }
 }

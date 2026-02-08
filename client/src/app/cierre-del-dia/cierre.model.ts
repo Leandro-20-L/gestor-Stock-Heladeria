@@ -16,4 +16,7 @@ export interface Cierre {
   conDiferencias: number;
   items: CierreItem[];
   createdAt?: string;
+  totalVentasTeorico: number;
+  totalCajaContada: number;
+  diferenciaCaja: number;
 }

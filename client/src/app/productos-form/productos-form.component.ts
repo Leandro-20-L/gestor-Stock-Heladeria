@@ -55,18 +55,18 @@ export class ProductosFormComponent {
 
     if (this.id) {
       this.productosService.update(this.id, data).subscribe({
-        next: () => this.router.navigateByUrl('/productos'),
+        next: () => this.router.navigateByUrl('/app/productos'),
         error: () => alert('No se pudo actualizar'),
       });
     } else {
       this.productosService.create(data as any).subscribe({
-        next: () => this.router.navigateByUrl('/productos'),
+        next: () => this.router.navigateByUrl('/app/productos'),
         error: () => alert('No se pudo crear'),
       });
     }
   }
 
   volver() {
-    this.router.navigateByUrl('/productos');
+    this.router.navigateByUrl('/app/productos');
   }
 }

@@ -9,6 +9,8 @@ import {
   Validators,
 } from '@angular/forms';
 import { CommonModule } from '@angular/common';
+import { toSignal } from '@angular/core/rxjs-interop'; // <--- IMPORTANTE
+import { debounceTime } from 'rxjs/operators';
 
 type CartItem = {
   producto: Producto;
@@ -33,9 +35,15 @@ export class VentasFormComponent {
     medioPago: ['efectivo' as MedioPago, Validators.required],
   });
 
+  // 1. CREAMOS EL SIGNAL DEL BUSCADOR
+  searchQuery = toSignal(
+    this.form.controls.search.valueChanges.pipe(debounceTime(300)),
+    { initialValue: '' },
+  );
+
   // lista filtrada según buscador
   productosFiltrados = computed(() => {
-    const q = this.form.controls.search.value.trim().toLowerCase();
+    const q = (this.searchQuery() || '').trim().toLowerCase();
     const list = this.productos();
 
     if (!q) return list.slice(0, 30); // para no listar infinito

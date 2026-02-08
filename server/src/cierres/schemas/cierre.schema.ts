@@ -34,6 +34,15 @@ export class Cierre {
 
   @Prop({ default: 0 })
   conDiferencias: number;
+
+  @Prop({ required: true, min: 0, default: 0 })
+  totalVentasTeorico: number;
+
+  @Prop({ required: true, min: 0, default: 0 })
+  totalCajaContada: number;
+
+  @Prop({ required: true, default: 0 })
+  diferenciaCaja: number; // totalCajaContada - totalVentasTeorico
 }
 
 export type CierreDocument = Cierre & Document;

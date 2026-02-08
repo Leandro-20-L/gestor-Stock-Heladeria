@@ -13,6 +13,9 @@
       <div>Fecha</div>
       <div>Productos</div>
       <div>Diferencias</div>
+      <div>Total sistema</div>
+      <div>Total contado</div>
+      <div>Diferencia</div>
       <div></div>
     </div>
 
@@ -32,7 +35,23 @@
           {{ c.conDiferencias === 0 ? "OK" : c.conDiferencias + " dif." }}
         </span>
       </div>
+      <div class="money">
+        <b>$ {{ c.totalVentasTeorico }}</b>
+      </div>
 
+      <div class="money">
+        <b>$ {{ c.totalCajaContada }}</b>
+      </div>
+
+      <div class="money">
+        <span
+          class="badge"
+          [class.ok]="c.diferenciaCaja === 0"
+          [class.bad]="c.diferenciaCaja !== 0"
+        >
+          {{ c.diferenciaCaja === 0 ? "OK" : "$ " + c.diferenciaCaja }}
+        </span>
+      </div>
       <div class="actions">
         <a class="btn-ghost" [routerLink]="['/app/cierres', c._id]">
           Ver detalle

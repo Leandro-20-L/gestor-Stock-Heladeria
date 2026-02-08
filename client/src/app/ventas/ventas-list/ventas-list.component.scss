@@ -214,6 +214,13 @@ h2 {
   background: rgba(255, 255, 255, 0.02);
 }
 
+.buttons {
+  display: flex;
+  flex-direction: row;
+  gap: 10px;
+  justify-content: center;
+}
+
 /* Responsive */
 @media (max-width: 950px) {
   .fila.header {

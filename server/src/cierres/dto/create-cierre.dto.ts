@@ -3,6 +3,7 @@ import {
   IsArray,
   IsInt,
   IsMongoId,
+  IsNumber,
   IsOptional,
   IsString,
   Min,
@@ -30,4 +31,8 @@ export class CreateCierreDto {
   @ValidateNested({ each: true })
   @Type(() => CierreItemInputDto)
   items: CierreItemInputDto[];
+
+  @IsNumber()
+  @Min(0)
+  totalCajaContada: number;
 }

@@ -43,6 +43,37 @@
       </div>
     </div>
 
+    <div class="stats caja">
+      <div class="stat">
+        <div class="label">Total sistema</div>
+        <div class="value">$ {{ cierre.totalVentasTeorico }}</div>
+      </div>
+
+      <div class="stat">
+        <div class="label">Total contado</div>
+        <div class="value">$ {{ cierre.totalCajaContada }}</div>
+      </div>
+
+      <div class="stat" [class.warn]="cierre.diferenciaCaja !== 0">
+        <div class="label">Diferencia caja</div>
+        <div class="value">
+          <span
+            class="chip"
+            [class.ok]="cierre.diferenciaCaja === 0"
+            [class.bad]="cierre.diferenciaCaja !== 0"
+          >
+            {{
+              cierre.diferenciaCaja === 0
+                ? "OK"
+                : cierre.diferenciaCaja > 0
+                  ? "+$ " + cierre.diferenciaCaja
+                  : "$ " + cierre.diferenciaCaja
+            }}
+          </span>
+        </div>
+      </div>
+    </div>
+
     <div class="tabla" *ngIf="cierre.items.length > 0">
       <div class="fila header-row">
         <div>Producto</div>

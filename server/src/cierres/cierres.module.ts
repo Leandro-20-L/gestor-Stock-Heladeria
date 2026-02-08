@@ -8,12 +8,14 @@ import {
   ProductoSchema,
 } from 'src/productos/schemas/producto.schema';
 import { CierreSchema } from './schemas/cierre.schema';
+import { Venta, VentaSchema } from 'src/ventas/schemas/venta.schema';
 
 @Module({
   imports: [
     MongooseModule.forFeature([
       { name: Cierre.name, schema: CierreSchema },
       { name: Producto.name, schema: ProductoSchema },
+      { name: Venta.name, schema: VentaSchema },
     ]),
   ],
   controllers: [CierresController],

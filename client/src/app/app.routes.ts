@@ -44,6 +44,16 @@ export const routes: Routes = [
         data: { animation: 'NewProductosPage' },
       },
       {
+        path: 'productos/:id/editar', // <--- El :id es la clave
+        canActivate: [adminGuard],
+        loadComponent: () =>
+          import('./productos-form/productos-form.component').then(
+            (m) => m.ProductosFormComponent,
+          ),
+        data: { animation: 'EditProductoPage' },
+      },
+
+      {
         path: 'ventas',
         loadComponent: () =>
           import('./ventas/ventas-list/ventas-list.component').then(
