@@ -26,3 +26,11 @@ body {
   --mat-snack-bar-button-color: #ff6b6b;
   border: 1px solid rgba(255, 107, 107, 0.2);
 }
+
+.success-snackbar {
+  --mdc-snackbar-container-color: #14161c;
+  --mdc-snackbar-supporting-text-color: #fff;
+  --mat-snack-bar-button-color: #ffd60a;
+  border: 1px solid rgba(255, 214, 10, 0.2);
+  border-radius: 12px;
+}

@@ -6,7 +6,7 @@ import { Roles } from 'src/auth/roles.decorator';
 import { RolesGuard } from 'src/jwt/roles.guard';
 
 @UseGuards(AuthGuard('jwt'), RolesGuard)
-@Roles('admin')
+@Roles('admin', 'empleado')
 @Controller('stats')
 @Controller('stats')
 export class StatsController {

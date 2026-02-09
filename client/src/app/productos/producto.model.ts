@@ -13,4 +13,5 @@ export interface Producto {
   activo: boolean;
   createdAt?: string;
   updatedAt?: string;
+  stockBajo?: boolean;
 }

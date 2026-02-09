@@ -304,3 +304,68 @@ p {
     padding: 10px 12px;
   }
 }
+
+/* nombre + badge stock bajo */
+.name {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 900;
+}
+
+/* badge reutilizable */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 10px;
+  border-radius: 999px;
+  font-weight: 900;
+  font-size: 12px;
+  border: 1px solid rgba(255, 214, 10, 0.25);
+  background: rgba(255, 214, 10, 0.12);
+}
+
+/* activo */
+.badge.ok {
+  border-color: rgba(74, 222, 128, 0.35);
+  background: rgba(74, 222, 128, 0.15);
+  color: #a7f3d0;
+}
+
+.badge.neutral {
+  border-color: rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.8);
+}
+
+/* stock bajo */
+.badge.bad {
+  border-color: rgba(255, 107, 107, 0.35);
+  background: rgba(255, 107, 107, 0.15);
+  color: #fecaca;
+}
+
+/* resalta fila con stock bajo */
+tbody tr.low {
+  border-color: rgba(255, 107, 107, 0.28);
+
+  td {
+    background: rgba(255, 107, 107, 0.06);
+  }
+
+  &:hover td {
+    background: rgba(255, 107, 107, 0.1);
+  }
+}
+
+select {
+  background-color: rgba(20, 22, 28, 0.9);
+  color: #fff;
+  border: 1px solid rgba(255, 214, 10, 0.35);
+}
+
+select option {
+  background-color: #14161c;
+  color: #fff;
+}

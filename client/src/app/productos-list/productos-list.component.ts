@@ -24,12 +24,13 @@ export class ProductosListComponent {
   q = new FormControl<string>('', { nonNullable: true });
   categoria = new FormControl<string>('', { nonNullable: true });
   verInactivos = new FormControl<boolean>(false, { nonNullable: true });
-
+  stockBajo = new FormControl<boolean>(false, { nonNullable: true });
   constructor(private productosService: ProductoService) {
     // búsqueda automática mientras escribe (opcional)
     this.q.valueChanges.pipe(debounceTime(300)).subscribe(() => this.cargar());
     this.categoria.valueChanges.subscribe(() => this.cargar());
     this.verInactivos.valueChanges.subscribe(() => this.cargar());
+    this.stockBajo.valueChanges.subscribe(() => this.cargar());
 
     this.cargar();
   }
@@ -40,9 +41,10 @@ export class ProductosListComponent {
       | Categoria
       | undefined;
     const activos = this.verInactivos.value ? false : true;
+    const stockBajo = this.stockBajo.value ? true : undefined;
 
     this.productosService
-      .getAll({ q: q || undefined, categoria, activos })
+      .getAll({ q: q || undefined, categoria, activos, stockBajo })
       .subscribe({
         next: (data) => this.productos.set(data),
         error: () => {

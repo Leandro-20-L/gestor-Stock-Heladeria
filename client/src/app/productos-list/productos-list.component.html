@@ -15,6 +15,10 @@
     <input type="checkbox" [formControl]="verInactivos" />
     Ver inactivos
   </label>
+  <label>
+    <input type="checkbox" [formControl]="stockBajo" />
+    StockBajo
+  </label>
   <button (click)="cargar()">Buscar</button>
 </div>
 
@@ -32,13 +36,24 @@
   </thead>
 
   <tbody>
-    <tr *ngFor="let p of productos()">
-      <td>{{ p.nombre }}</td>
+    <tr *ngFor="let p of productos()" [class.low]="p.stockBajo">
+      <td class="name">
+        {{ p.nombre }}
+
+        <span *ngIf="p.stockBajo" class="badge bad"> ⚠ Stock bajo </span>
+      </td>
+
       <td>{{ p.categoria }}</td>
       <td>{{ p.unidad }}</td>
       <td>{{ p.precioVenta ?? "-" }}</td>
       <td>{{ p.stockActual ?? "-" }}</td>
-      <td>{{ p.activo ? "Sí" : "No" }}</td>
+
+      <td>
+        <span class="badge" [class.ok]="p.activo" [class.neutral]="!p.activo">
+          {{ p.activo ? "Sí" : "No" }}
+        </span>
+      </td>
+
       <td class="actions">
         <a [routerLink]="['/app/productos/', p._id, 'editar']">Editar</a>
         <button (click)="desactivar(p)" [disabled]="!p.activo">

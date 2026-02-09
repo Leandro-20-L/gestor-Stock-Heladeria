@@ -3,9 +3,29 @@ import { CreateProductoDto } from './dto/create-producto.dto';
 import { UpdateProductoDto } from './dto/update-producto.dto';
 import { InjectModel } from '@nestjs/mongoose';
 import { Producto, ProductoDocument } from './schemas/producto.schema';
-import mongoose, { Model } from 'mongoose';
+import { Model } from 'mongoose';
 
-type ProductoFindFilter = Parameters<Model<ProductoDocument>['find']>[0];
+//type ProductoFindFilter = Parameters<Model<ProductoDocument>['find']>[0];
+
+type Categoria = 'helado' | 'bebida' | 'comida';
+
+type ProductoFindFilter = {
+  categoria?: Categoria;
+  activo?: boolean;
+
+  // búsqueda por nombre
+  nombre?: { $regex: string; $options: 'i' };
+
+  // filtros avanzados
+  $expr?: Record<string, unknown>;
+  $and?: Record<string, unknown>[];
+};
+type ProductoLean = {
+  _id: string;
+  nombre: string;
+  stockActual?: number;
+  stockMinimo?: number;
+};
 
 @Injectable()
 export class ProductosService {
@@ -23,26 +43,29 @@ export class ProductosService {
     activos?: string;
     stockBajo?: string;
   }) {
-    const filter = {} as ProductoFindFilter;
+    const filter: ProductoFindFilter = {};
 
-    if (params?.categoria) (filter as any).categoria = params.categoria;
-    if (params?.q) (filter as any).nombre = { $regex: params.q, $options: 'i' };
+    if (params?.categoria) filter.categoria = params.categoria as Categoria;
 
-    if (params?.activos !== 'false') (filter as any).activo = true;
+    if (params?.q) {
+      filter.nombre = { $regex: params.q, $options: 'i' };
+    }
+
+    if (params?.activos !== 'false') filter.activo = true;
 
     if (params?.stockBajo === 'true') {
-      (filter as any).$expr = { $lte: ['$stockActual', '$stockMinimo'] };
+      filter.$expr = { $lte: ['$stockActual', '$stockMinimo'] };
     }
 
     const productos = await this.productoModel
-      .find(filter)
+      .find(filter) // 👈 si tu versión de mongoose jode con tipos, dejá solo ESTE cast
       .sort({ createdAt: -1 })
-      .lean()
+      .lean<ProductoLean[]>()
       .exec();
 
     return productos.map((p) => ({
       ...p,
-      stockBajo: p.stockActual <= p.stockMinimo,
+      stockBajo: Number(p.stockActual ?? 0) <= Number(p.stockMinimo ?? 0),
     }));
   }
 

@@ -33,7 +33,7 @@ export class VentasController {
   }
 
   @UseGuards(AuthGuard('jwt'), RolesGuard)
-  @Roles('admin')
+  @Roles('admin', 'empleado')
   @Patch(':id/anular')
   anular(@Param('id') id: string) {
     return this.ventasService.anular(id);

@@ -282,3 +282,14 @@ h2 {
   font-size: 18px;
   color: #ffd60a;
 }
+
+select {
+  background-color: rgba(20, 22, 28, 0.9);
+  color: #fff;
+  border: 1px solid rgba(255, 214, 10, 0.35);
+}
+
+select option {
+  background-color: #14161c;
+  color: #fff;
+}
