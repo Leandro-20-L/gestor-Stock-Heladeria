@@ -28,6 +28,28 @@ form {
   gap: 12px 12px;
 }
 
+.error-msg {
+  display: block; /* Para que baje a una nueva línea */
+  margin-top: 6px; /* Separación del input */
+  color: #ff6b6b; /* Rojo pastel suave (se lee bien sobre oscuro) */
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  animation: fadeIn 0.3s ease;
+}
+
+/* Animación opcional para que aparezca suavemente */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 @media (max-width: 900px) {
   .grid {
     grid-template-columns: 1fr;

@@ -10,6 +10,7 @@ import { Categoria, Producto, Unidad } from '../productos/producto.model';
 import { ProductoService } from '../services/producto.service';
 import { CommonModule } from '@angular/common';
 import { debounceTime } from 'rxjs';
+import Swal from 'sweetalert2';
 
 @Component({
   selector: 'app-productos-list',
@@ -44,16 +45,61 @@ export class ProductosListComponent {
       .getAll({ q: q || undefined, categoria, activos })
       .subscribe({
         next: (data) => this.productos.set(data),
-        error: () => alert('Error cargando productos'),
+        error: () => {
+          Swal.fire({
+            icon: 'error',
+            title: 'Error de conexión',
+            text: 'No se pudieron cargar los productos.',
+            confirmButtonColor: '#d33',
+            background: '#14161c',
+            color: '#fff',
+          });
+        },
       });
   }
 
   desactivar(p: Producto) {
-    if (!confirm(`¿Desactivar "${p.nombre}"?`)) return;
+    Swal.fire({
+      title: '¿Desactivar producto?',
+      text: `Vas a quitar "${p.nombre}" del listado activo.`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Sí, desactivar',
+      cancelButtonText: 'Cancelar',
+      confirmButtonColor: '#ffd60a', // Amarillo (Acción principal)
+      cancelButtonColor: '#d33', // Rojo (Cancelar)
+      background: '#14161c', // Fondo oscuro
+      color: '#fff', // Texto blanco
+    }).then((result) => {
+      // Solo ejecutamos si el usuario confirmó
+      if (result.isConfirmed) {
+        this.productosService.deactivate(p._id).subscribe({
+          next: () => {
+            this.cargar();
 
-    this.productosService.deactivate(p._id).subscribe({
-      next: () => this.cargar(),
-      error: () => alert('No se pudo desactivar'),
+            // Opcional: Feedback visual de éxito rápido (Toast)
+            const Toast = Swal.mixin({
+              toast: true,
+              position: 'top-end',
+              showConfirmButton: false,
+              timer: 3000,
+              background: '#14161c',
+              color: '#fff',
+            });
+            Toast.fire({ icon: 'success', title: 'Producto desactivado' });
+          },
+          error: () => {
+            // 3. REEMPLAZO DEL ALERT DE ERROR AL DESACTIVAR
+            Swal.fire({
+              icon: 'error',
+              title: 'Error',
+              text: 'No se pudo desactivar el producto.',
+              background: '#14161c',
+              color: '#fff',
+            });
+          },
+        });
+      }
     });
   }
 }

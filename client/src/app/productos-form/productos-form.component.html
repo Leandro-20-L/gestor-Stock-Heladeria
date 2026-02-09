@@ -4,7 +4,26 @@
   <div class="grid">
     <label>
       Nombre
-      <input formControlName="nombre" />
+      <input formControlName="nombre" placeholder="Ej: Super Dulce de Leche" />
+
+      <small
+        class="error-msg"
+        *ngIf="
+          form.get('nombre')?.touched &&
+          form.get('nombre')?.hasError('required')
+        "
+      >
+        El nombre es obligatorio.
+      </small>
+      <small
+        class="error-msg"
+        *ngIf="
+          form.get('nombre')?.touched &&
+          form.get('nombre')?.hasError('minlength')
+        "
+      >
+        Mínimo 2 caracteres.
+      </small>
     </label>
 
     <label>
@@ -26,22 +45,80 @@
 
     <label>
       Precio venta
-      <input type="number" formControlName="precioVenta" />
+      <input
+        type="number"
+        formControlName="precioVenta"
+        min="0"
+        placeholder="0"
+      />
+
+      <small
+        class="error-msg"
+        *ngIf="
+          form.get('precioVenta')?.touched &&
+          form.get('precioVenta')?.hasError('required')
+        "
+      >
+        Ingresá el precio de venta.
+      </small>
+      <small class="error-msg" *ngIf="form.get('precioVenta')?.hasError('min')">
+        No puede ser negativo.
+      </small>
     </label>
 
     <label>
       Costo
-      <input type="number" formControlName="costo" />
+      <input type="number" formControlName="costo" min="0" placeholder="0" />
+
+      <small class="error-msg" *ngIf="form.get('costo')?.hasError('min')">
+        El costo no puede ser negativo.
+      </small>
     </label>
 
     <label>
       Stock actual
-      <input type="number" formControlName="stockActual" />
+      <input
+        type="number"
+        formControlName="stockActual"
+        min="0"
+        placeholder="0"
+      />
+
+      <small
+        class="error-msg"
+        *ngIf="
+          form.get('stockActual')?.touched &&
+          form.get('stockActual')?.hasError('required')
+        "
+      >
+        Requerido.
+      </small>
+      <small class="error-msg" *ngIf="form.get('stockActual')?.hasError('min')">
+        Mínimo 0.
+      </small>
     </label>
 
     <label>
       Stock mínimo
-      <input type="number" formControlName="stockMinimo" />
+      <input
+        type="number"
+        formControlName="stockMinimo"
+        min="0"
+        placeholder="0"
+      />
+
+      <small
+        class="error-msg"
+        *ngIf="
+          form.get('stockMinimo')?.touched &&
+          form.get('stockMinimo')?.hasError('required')
+        "
+      >
+        Requerido.
+      </small>
+      <small class="error-msg" *ngIf="form.get('stockMinimo')?.hasError('min')">
+        Mínimo 0.
+      </small>
     </label>
   </div>
 

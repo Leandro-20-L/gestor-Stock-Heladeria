@@ -1,4 +1,4 @@
-import { Component, signal } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import {
   FormBuilder,
   FormGroup,
@@ -9,10 +9,11 @@ import { ProductoService } from '../services/producto.service';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Categoria, Unidad } from '../productos/producto.model';
 import { CommonModule } from '@angular/common';
+import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 
 @Component({
   selector: 'app-productos-form',
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, MatSnackBarModule],
   templateUrl: './productos-form.component.html',
   styleUrl: './productos-form.component.scss',
 })
@@ -20,6 +21,8 @@ export class ProductosFormComponent {
   esEdicion = signal(false);
   id: string | null = null;
   form!: FormGroup;
+
+  private snackBar = inject(MatSnackBar);
 
   debug = false;
 
@@ -35,10 +38,10 @@ export class ProductosFormComponent {
       nombre: ['', [Validators.required, Validators.minLength(2)]],
       categoria: ['helado' as Categoria, [Validators.required]],
       unidad: ['kg' as Unidad, [Validators.required]],
-      precioVenta: [0, [Validators.required, Validators.min(0)]],
-      costo: [0, [Validators.min(0)]],
-      stockActual: [0, [Validators.required, Validators.min(0)]],
-      stockMinimo: [0, [Validators.required, Validators.min(0)]],
+      precioVenta: [, [Validators.required, Validators.min(0)]],
+      costo: [, [Validators.min(0)]],
+      stockActual: [, [Validators.required, Validators.min(0)]],
+      stockMinimo: [, [Validators.required, Validators.min(0)]],
     });
     this.id = this.route.snapshot.paramMap.get('id');
     if (this.id) {
@@ -55,12 +58,28 @@ export class ProductosFormComponent {
 
     if (this.id) {
       this.productosService.update(this.id, data).subscribe({
-        next: () => this.router.navigateByUrl('/app/productos'),
+        next: () => {
+          (this.router.navigateByUrl('/app/productos'),
+            this.snackBar.open(`¡Productos Actualizado! `, 'Cerrar', {
+              duration: 4000,
+              horizontalPosition: 'center',
+              verticalPosition: 'bottom',
+              panelClass: ['custom-snackbar'], // Opcional para estilos CSS
+            }));
+        },
         error: () => alert('No se pudo actualizar'),
       });
     } else {
       this.productosService.create(data as any).subscribe({
-        next: () => this.router.navigateByUrl('/app/productos'),
+        next: () => {
+          (this.router.navigateByUrl('/app/productos'),
+            this.snackBar.open(`¡Producto Creado! `, 'Cerrar', {
+              duration: 4000,
+              horizontalPosition: 'center',
+              verticalPosition: 'bottom',
+              panelClass: ['custom-snackbar'], // Opcional para estilos CSS
+            }));
+        },
         error: () => alert('No se pudo crear'),
       });
     }

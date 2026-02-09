@@ -11,6 +11,7 @@ import {
 import { CommonModule } from '@angular/common';
 import { toSignal } from '@angular/core/rxjs-interop'; // <--- IMPORTANTE
 import { debounceTime } from 'rxjs/operators';
+import Swal from 'sweetalert2';
 
 type CartItem = {
   producto: Producto;
@@ -158,21 +159,75 @@ export class VentasFormComponent {
       })),
     };
 
+    Swal.fire({
+      title: '¿Confirmar venta?',
+      // Muestra el total y el medio de pago en negrita
+      html: `
+        Total a cobrar: <b style="font-size: 1.2em; color: #ffd60a">$${this.total()}</b>
+        <br>
+        Medio de pago: <b>${dto.medioPago.toUpperCase()}</b>
+      `,
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonText: 'Sí, cobrar',
+      cancelButtonText: 'Cancelar',
+      confirmButtonColor: '#ffd60a', // Amarillo
+      cancelButtonColor: '#d33', // Rojo
+      background: '#14161c', // Fondo oscuro
+      color: '#fff',
+    }).then((result) => {
+      if (result.isConfirmed) {
+        this.enviarVenta(dto);
+      }
+    });
+  }
+
+  // Método auxiliar para mantener limpio el código
+  private enviarVenta(dto: CreateVentaDto) {
     this.cargando.set(true);
+
+    // Feedback de carga (bloquea la pantalla para no doble click)
+    Swal.fire({
+      title: 'Procesando...',
+      text: 'Registrando venta',
+      allowOutsideClick: false,
+      background: '#14161c',
+      color: '#fff',
+      didOpen: () => Swal.showLoading(),
+    });
+
     this.ventasService.crearVenta(dto).subscribe({
       next: () => {
-        alert('Venta registrada ✅');
+        // ÉXITO
+        Swal.fire({
+          icon: 'success',
+          title: '¡Venta Registrada!',
+          text: 'El stock se ha actualizado.',
+          timer: 2000, // Se cierra solo en 2 segs
+          showConfirmButton: false,
+          background: '#14161c',
+          color: '#fff',
+        });
+
         this.limpiar();
-        this.refrescarProductos(); // refresca stocks
+        this.refrescarProductos();
       },
       error: (err) => {
-        // mensaje amigable si viene del backend
+        // ERROR
         const msg = err?.error?.message
           ? Array.isArray(err.error.message)
             ? err.error.message.join(' | ')
             : err.error.message
           : 'No se pudo registrar la venta';
-        alert(msg);
+
+        Swal.fire({
+          icon: 'error',
+          title: 'Ocurrió un error',
+          text: msg,
+          confirmButtonColor: '#d33',
+          background: '#14161c',
+          color: '#fff',
+        });
       },
       complete: () => this.cargando.set(false),
     });

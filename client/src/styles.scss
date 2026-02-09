@@ -1,3 +1,28 @@
 /* You can add global styles to this file, and also import other style files */
 /* src/styles.scss */
 @import "ngx-toastr/toastr";
+
+html,
+body {
+  height: 100%;
+}
+body {
+  margin: 0;
+  font-family: Roboto, "Helvetica Neue", sans-serif;
+}
+
+/* Éxito / Bienvenida */
+.custom-snackbar {
+  --mdc-snackbar-container-color: #14161c; /* Fondo oscuro */
+  --mdc-snackbar-supporting-text-color: #fff; /* Texto blanco */
+  --mat-snack-bar-button-color: #ffd60a; /* Botón Amarillo */
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Error */
+.error-snackbar {
+  --mdc-snackbar-container-color: #2c0b0e; /* Rojo muy oscuro */
+  --mdc-snackbar-supporting-text-color: #ffc9c9;
+  --mat-snack-bar-button-color: #ff6b6b;
+  border: 1px solid rgba(255, 107, 107, 0.2);
+}

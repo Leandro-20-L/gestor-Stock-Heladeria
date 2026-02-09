@@ -10,10 +10,11 @@ import {
   Validators,
 } from '@angular/forms';
 import { NgxSpinnerService } from 'ngx-spinner';
+import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 
 @Component({
   selector: 'app-login',
-  imports: [CommonModule, FormsModule, ReactiveFormsModule],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, MatSnackBarModule],
   templateUrl: './login.component.html',
   styleUrl: './login.component.scss',
 })
@@ -22,6 +23,7 @@ export class LoginComponent {
   password = '';
   private fb = inject(FormBuilder);
   private spinner = inject(NgxSpinnerService);
+  private snackBar = inject(MatSnackBar);
 
   loginForm = this.fb.group({
     email: ['', [Validators.required, Validators.email]],
@@ -43,13 +45,28 @@ export class LoginComponent {
 
     const { email, password } = this.loginForm.value;
     this.auth.login(email!, password!).subscribe({
-      next: () => {
+      next: (res: any) => {
         this.spinner.hide(); // <-- Ocultar
+        const nombre = res.user?.nombre || 'Usuario';
+
+        this.snackBar.open(`¡Hola de nuevo, ${nombre}! 👋`, 'Cerrar', {
+          duration: 3000,
+          horizontalPosition: 'center',
+          verticalPosition: 'bottom',
+          panelClass: ['custom-snackbar'], // Opcional para estilos CSS
+        });
         this.router.navigateByUrl('/dashboard');
       },
-      error: () => {
+      error: (err) => {
         this.spinner.hide();
-        alert('Credenciales inválidas');
+        this.snackBar.open(
+          err?.error?.message || 'Credenciales inválidas',
+          'X',
+          {
+            duration: 3000,
+            panelClass: ['error-snackbar'],
+          },
+        );
       },
     });
   }
