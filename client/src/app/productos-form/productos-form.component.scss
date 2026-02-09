@@ -172,3 +172,14 @@ pre {
   color: rgba(255, 255, 255, 0.85);
   overflow: auto;
 }
+
+select {
+  background-color: rgba(20, 22, 28, 0.9);
+  color: #fff;
+  border: 1px solid rgba(255, 214, 10, 0.35);
+}
+
+select option {
+  background-color: #14161c;
+  color: #fff;
+}

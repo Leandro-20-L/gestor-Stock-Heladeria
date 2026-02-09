@@ -43,19 +43,33 @@ export class CierreDetalleComponent {
   exportarExcel() {
     if (!this.cierre) return;
 
-    const data = this.cierre.items.map((it) => ({
-      Producto: it.productoId.nombre, // 👈 nombre, no ID
-      'Stock teórico': it.stockTeorico,
-      'Stock contado': it.stockContado,
+    // Hoja 1: Resumen caja (lo que te importa del día)
+    const resumen = [
+      { Campo: 'Fecha', Valor: this.cierre.fecha },
+      { Campo: 'Total sistema', Valor: this.cierre.totalVentasTeorico ?? 0 },
+      { Campo: 'Total contado', Valor: this.cierre.totalCajaContada ?? 0 },
+      { Campo: 'Diferencia', Valor: this.cierre.diferenciaCaja ?? 0 },
+      { Campo: 'Productos cargados', Valor: this.cierre.totalProductos ?? 0 },
+      { Campo: 'Con diferencias', Valor: this.cierre.conDiferencias ?? 0 },
+    ];
+
+    const wsResumen = XLSX.utils.json_to_sheet(resumen);
+
+    // Hoja 2: Detalle (Producto + teórico/contado + diferencia)
+    const detalle = this.cierre.items.map((it) => ({
+      Producto: it.productoId.nombre,
+      Teorico: it.stockTeorico,
+      Contado: it.stockContado,
       Diferencia: it.diferencia,
     }));
 
-    const worksheet = XLSX.utils.json_to_sheet(data);
-    const workbook = XLSX.utils.book_new();
+    const wsDetalle = XLSX.utils.json_to_sheet(detalle);
 
-    XLSX.utils.book_append_sheet(workbook, worksheet, 'Cierre');
+    // Workbook
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, wsResumen, 'Resumen');
+    XLSX.utils.book_append_sheet(wb, wsDetalle, 'Detalle');
 
-    const nombreArchivo = `cierre_${this.cierre.fecha}.xlsx`;
-    XLSX.writeFile(workbook, nombreArchivo);
+    XLSX.writeFile(wb, `cierre_${this.cierre.fecha}.xlsx`);
   }
 }
