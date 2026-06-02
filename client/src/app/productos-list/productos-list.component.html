@@ -22,7 +22,7 @@
   <button (click)="cargar()">Buscar</button>
 </div>
 
-<table *ngIf="productos().length > 0; else empty">
+<table class="desktop-table" *ngIf="productos().length > 0; else empty">
   <thead>
     <tr>
       <th>Nombre</th>
@@ -63,6 +63,51 @@
     </tr>
   </tbody>
 </table>
+
+<div class="mobile-products" *ngIf="productos().length > 0">
+  <article
+    class="product-card"
+    *ngFor="let p of productos()"
+    [class.low]="p.stockBajo"
+  >
+    <div class="card-head">
+      <div>
+        <h3>{{ p.nombre }}</h3>
+        <span class="categoria">{{ p.categoria }}</span>
+      </div>
+
+      <span class="badge" [class.ok]="p.activo" [class.neutral]="!p.activo">
+        {{ p.activo ? "Sí" : "No" }}
+      </span>
+    </div>
+
+    <span *ngIf="p.stockBajo" class="badge bad alert-stock">
+      ⚠ Stock bajo
+    </span>
+
+    <div class="card-info">
+      <div>
+        <span>Unidad</span>
+        <b>{{ p.unidad }}</b>
+      </div>
+
+      <div>
+        <span>Precio</span>
+        <b>$ {{ p.precioVenta ?? "-" }}</b>
+      </div>
+
+      <div>
+        <span>Stock</span>
+        <b>{{ p.stockActual ?? "-" }}</b>
+      </div>
+    </div>
+
+    <div class="mobile-actions">
+      <a [routerLink]="['/app/productos/', p._id, 'editar']">Editar</a>
+      <button (click)="desactivar(p)" [disabled]="!p.activo">Desactivar</button>
+    </div>
+  </article>
+</div>
 
 <ng-template #empty>
   <p>No hay productos para mostrar.</p>

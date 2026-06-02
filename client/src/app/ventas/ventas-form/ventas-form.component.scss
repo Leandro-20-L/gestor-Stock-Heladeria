@@ -293,3 +293,70 @@ select option {
   background-color: #14161c;
   color: #fff;
 }
+
+.category-tabs {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin: 8px 0 12px;
+}
+
+.category-tabs button {
+  min-height: 44px;
+  padding: 10px;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 214, 10, 0.25);
+  background: rgba(255, 255, 255, 0.04);
+  color: rgba(255, 255, 255, 0.78);
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.category-tabs button.active {
+  background: linear-gradient(180deg, #ffd60a, #ffb703);
+  color: #151515;
+  box-shadow: 0 10px 22px rgba(255, 214, 10, 0.16);
+}
+
+@media (max-width: 700px) {
+  h2 {
+    font-size: 26px;
+  }
+
+  .top {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .top input {
+    grid-column: 1 / -1;
+    min-width: 0;
+    width: 100%;
+  }
+
+  .top select {
+    min-width: 0;
+    width: 100%;
+  }
+
+  .top button {
+    width: 100%;
+    min-height: 48px;
+  }
+
+  .layout {
+    gap: 14px;
+  }
+
+  .panel {
+    padding: 14px;
+  }
+
+  .row {
+    align-items: stretch;
+  }
+
+  .btn {
+    min-width: 94px;
+  }
+}

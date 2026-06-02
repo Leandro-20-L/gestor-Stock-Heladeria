@@ -27,6 +27,32 @@
   </button>
 </div>
 
+<div class="category-tabs">
+  <button
+    type="button"
+    [class.active]="categoriaActiva === 'helado'"
+    (click)="setCategoria('helado')"
+  >
+    🍦 Helados
+  </button>
+
+  <button
+    type="button"
+    [class.active]="categoriaActiva === 'comida'"
+    (click)="setCategoria('comida')"
+  >
+    🍔 Comida
+  </button>
+
+  <button
+    type="button"
+    [class.active]="categoriaActiva === 'bebida'"
+    (click)="setCategoria('bebida')"
+  >
+    🥤 Bebidas
+  </button>
+</div>
+
 <div class="layout">
   <!-- Lista de productos -->
   <section class="panel">
@@ -35,7 +61,7 @@
     <div *ngIf="cargando()">Cargando...</div>
 
     <div class="list">
-      <div class="row" *ngFor="let p of productosFiltrados()">
+      <div class="row" *ngFor="let p of productosPorCategoria()">
         <div class="info">
           <div class="name">{{ p.nombre }}</div>
           <div class="meta">

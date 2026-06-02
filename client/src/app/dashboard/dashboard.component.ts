@@ -26,6 +26,7 @@ import { FormsModule } from '@angular/forms';
 })
 export class DashboardComponent {
   private contexts = inject(ChildrenOutletContexts);
+  menuAbierto = false;
 
   getRouteAnimationData() {
     // Esta función busca la data en los hijos del Dashboard

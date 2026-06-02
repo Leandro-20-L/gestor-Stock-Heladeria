@@ -30,6 +30,12 @@ export class VentasFormComponent {
   carrito = signal<CartItem[]>([]);
   private fb = inject(FormBuilder);
 
+  categoriaActiva: 'helado' | 'comida' | 'bebida' = 'helado';
+
+  setCategoria(cat: 'helado' | 'comida' | 'bebida') {
+    this.categoriaActiva = cat;
+  }
+
   // ReactiveForms (nonNullable para evitar nulls)
   form = this.fb.nonNullable.group({
     search: [''],
@@ -79,6 +85,12 @@ export class VentasFormComponent {
       error: () => alert('Error cargando productos'),
       complete: () => this.cargando.set(false),
     });
+  }
+
+  productosPorCategoria() {
+    return this.productosFiltrados().filter(
+      (p) => p.categoria === this.categoriaActiva,
+    );
   }
 
   agregar(producto: Producto) {

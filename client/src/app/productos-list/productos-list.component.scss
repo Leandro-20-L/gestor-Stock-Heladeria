@@ -369,3 +369,161 @@ select option {
   background-color: #14161c;
   color: #fff;
 }
+
+.mobile-products {
+  display: none;
+}
+
+/* MOBILE PRODUCT CARDS */
+@media (max-width: 900px) {
+  .desktop-table {
+    display: none;
+  }
+
+  .header {
+    h2 {
+      font-size: 26px;
+    }
+
+    a {
+      padding: 10px 14px;
+      border-radius: 14px;
+      white-space: nowrap;
+    }
+  }
+
+  .filters {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+
+    input[type="text"] {
+      grid-column: 1 / -1;
+      width: 100%;
+      min-width: 0;
+    }
+
+    select {
+      width: 100%;
+      min-width: 0;
+    }
+
+    label {
+      justify-content: center;
+      min-width: 0;
+    }
+
+    button {
+      grid-column: 1 / -1;
+      width: 100%;
+    }
+  }
+
+  .mobile-products {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .product-card {
+    padding: 16px;
+    border-radius: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(20, 22, 28, 0.78);
+    box-shadow: 0 10px 26px rgba(0, 0, 0, 0.32);
+  }
+
+  .product-card.low {
+    border-color: rgba(255, 107, 107, 0.32);
+    background: rgba(255, 107, 107, 0.07);
+  }
+
+  .card-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
+
+    h3 {
+      margin: 0;
+      font-size: 22px;
+      font-weight: 900;
+    }
+  }
+
+  .categoria {
+    display: inline-block;
+    margin-top: 6px;
+    font-size: 13px;
+    font-weight: 800;
+    color: rgba(255, 255, 255, 0.62);
+    text-transform: capitalize;
+  }
+
+  .alert-stock {
+    margin-top: 12px;
+  }
+
+  .card-info {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 10px;
+    margin-top: 14px;
+  }
+
+  .card-info div {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 10px 12px;
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.04);
+  }
+
+  .card-info span {
+    font-size: 12px;
+    font-weight: 900;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.55);
+  }
+
+  .card-info b {
+    font-weight: 900;
+  }
+
+  .mobile-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-top: 16px;
+
+    a,
+    button {
+      width: 100%;
+      min-height: 44px;
+      border-radius: 14px;
+      font-weight: 900;
+      text-align: center;
+    }
+
+    a {
+      display: grid;
+      place-items: center;
+      text-decoration: none;
+      border: 1px solid rgba(255, 214, 10, 0.45);
+      background: rgba(255, 214, 10, 0.1);
+      color: #fff;
+    }
+
+    button {
+      cursor: pointer;
+      border: 1px solid rgba(255, 107, 107, 0.45);
+      background: rgba(255, 107, 107, 0.12);
+      color: #fff;
+
+      &:disabled {
+        opacity: 0.45;
+      }
+    }
+  }
+}

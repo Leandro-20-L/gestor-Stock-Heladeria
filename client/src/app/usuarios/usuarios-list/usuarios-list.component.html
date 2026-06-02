@@ -43,15 +43,19 @@
     <div></div>
   </div>
 
-  <div class="fila" *ngFor="let u of usuariosFiltrados()">
+  <div class="fila user-card" *ngFor="let u of usuariosFiltrados()">
     <div class="name">
-      {{ u.nombre }}
+      <strong>{{ u.nombre }}</strong>
       <small class="muted">· {{ u.createdAt | date: "dd/MM HH:mm" }}</small>
     </div>
 
-    <div class="email">{{ u.email }}</div>
+    <div class="email">
+      <span class="label-mobile">Email</span>
+      {{ u.email }}
+    </div>
 
     <div>
+      <span class="label-mobile">Rol</span>
       <select
         class="select"
         [value]="u.rol"
@@ -63,6 +67,7 @@
     </div>
 
     <div>
+      <span class="label-mobile">Estado</span>
       <span class="badge" [class.badge-off]="!u.activo">
         {{ u.activo ? "Activo" : "Inactivo" }}
       </span>
@@ -75,80 +80,76 @@
     </div>
   </div>
 
-  <div class="empty" *ngIf="usuariosFiltrados().length === 0">
-    No hay usuarios para mostrar.
-  </div>
-</div>
+  <!-- MODAL CREAR -->
+  <div class="backdrop" *ngIf="mostrarForm()">
+    <div class="modal">
+      <div class="modal-head">
+        <h3>Nuevo usuario</h3>
+        <button class="x" type="button" (click)="cancelarCrear()">✕</button>
+      </div>
 
-<!-- MODAL CREAR -->
-<div class="backdrop" *ngIf="mostrarForm()">
-  <div class="modal">
-    <div class="modal-head">
-      <h3>Nuevo usuario</h3>
-      <button class="x" type="button" (click)="cancelarCrear()">✕</button>
+      <form [formGroup]="form" (ngSubmit)="crear()">
+        <div class="grid">
+          <label>
+            Nombre
+            <input formControlName="nombre" placeholder="Ej: Juan Pérez" />
+            <small
+              class="err"
+              *ngIf="ctrl('nombre').touched && ctrl('nombre').invalid"
+            >
+              Mínimo 2 caracteres.
+            </small>
+          </label>
+
+          <label>
+            Email
+            <input formControlName="email" placeholder="ej: empleado@pm.com" />
+            <small
+              class="err"
+              *ngIf="ctrl('email').touched && ctrl('email').invalid"
+            >
+              Email válido requerido.
+            </small>
+          </label>
+
+          <label>
+            Contraseña
+            <input
+              type="password"
+              formControlName="password"
+              placeholder="mínimo 6"
+            />
+            <small
+              class="err"
+              *ngIf="ctrl('password').touched && ctrl('password').invalid"
+            >
+              Mínimo 6 caracteres.
+            </small>
+          </label>
+
+          <label>
+            Rol
+            <select formControlName="rol">
+              <option value="empleado">empleado</option>
+              <option value="admin">admin</option>
+            </select>
+          </label>
+        </div>
+
+        <div class="modal-actions">
+          <button type="button" class="btn-secondary" (click)="cancelarCrear()">
+            Cancelar
+          </button>
+
+          <button
+            type="submit"
+            class="btn-primary"
+            [disabled]="form.invalid || creando()"
+          >
+            {{ creando() ? "Creando..." : "Crear" }}
+          </button>
+        </div>
+      </form>
     </div>
-
-    <form [formGroup]="form" (ngSubmit)="crear()">
-      <div class="grid">
-        <label>
-          Nombre
-          <input formControlName="nombre" placeholder="Ej: Juan Pérez" />
-          <small
-            class="err"
-            *ngIf="ctrl('nombre').touched && ctrl('nombre').invalid"
-          >
-            Mínimo 2 caracteres.
-          </small>
-        </label>
-
-        <label>
-          Email
-          <input formControlName="email" placeholder="ej: empleado@pm.com" />
-          <small
-            class="err"
-            *ngIf="ctrl('email').touched && ctrl('email').invalid"
-          >
-            Email válido requerido.
-          </small>
-        </label>
-
-        <label>
-          Contraseña
-          <input
-            type="password"
-            formControlName="password"
-            placeholder="mínimo 6"
-          />
-          <small
-            class="err"
-            *ngIf="ctrl('password').touched && ctrl('password').invalid"
-          >
-            Mínimo 6 caracteres.
-          </small>
-        </label>
-
-        <label>
-          Rol
-          <select formControlName="rol">
-            <option value="empleado">empleado</option>
-            <option value="admin">admin</option>
-          </select>
-        </label>
-      </div>
-
-      <div class="modal-actions">
-        <button type="button" class="btn-secondary" (click)="cancelarCrear()">
-          Cancelar
-        </button>
-
-        <button
-          type="submit"
-          class="btn-primary"
-          [disabled]="form.invalid || creando()"
-        >
-          {{ creando() ? "Creando..." : "Crear" }}
-        </button>
-      </div>
-    </form>
   </div>
 </div>

@@ -3,36 +3,38 @@
     <h3>Heladería PM</h3>
 
     <nav>
-      <a routerLink="/app/ventas/nueva" routerLinkActive="active"
-        >Nueva venta</a
-      >
+      <a routerLink="/app/ventas/nueva" routerLinkActive="active">
+        Nueva venta
+      </a>
+
       <a
         routerLink="/app/ventas"
         routerLinkActive="active"
         [routerLinkActiveOptions]="{ exact: false }"
-        >Ventas</a
       >
+        Ventas
+      </a>
 
       <a *ngIf="esAdmin" routerLink="/app/productos" routerLinkActive="active">
         Productos
       </a>
+
       <a
         *ngIf="esAdmin"
         routerLink="/app/resumen"
         routerLinkActive="active"
         [routerLinkActiveOptions]="{ exact: true }"
-        >Resumen</a
       >
+        Resumen
+      </a>
 
-      <a routerLink="/app/cierre" routerLinkActive="active">Cierre del día</a>
-      <a routerLink="/app/cierres" routerLinkActive="active"
-        >Historial de cierres</a
-      >
-      <a
-        *ngIf="auth.isAdmin()"
-        routerLink="/app/usuarios"
-        routerLinkActive="active"
-      >
+      <a routerLink="/app/cierre" routerLinkActive="active"> Cierre del día </a>
+
+      <a routerLink="/app/cierres" routerLinkActive="active">
+        Historial de cierres
+      </a>
+
+      <a *ngIf="esAdmin" routerLink="/app/usuarios" routerLinkActive="active">
         Usuarios
       </a>
     </nav>
@@ -40,9 +42,65 @@
     <button (click)="logout()">Cerrar sesión</button>
   </aside>
 
+  <header class="mobile-header">
+    <div class="brand">
+      <img src="/logo.jpg" alt="PM" class="logo" />
+      <h2>Heladería PM</h2>
+    </div>
+
+    <button class="account-btn" (click)="menuAbierto = !menuAbierto">
+      <img class="ico" src="/icons/nav/circle-user-round.svg" alt="" />
+    </button>
+
+    <div class="account-menu" *ngIf="menuAbierto">
+      <a
+        *ngIf="esAdmin"
+        routerLink="/app/usuarios"
+        (click)="menuAbierto = false"
+      >
+        Usuarios
+      </a>
+
+      <button (click)="logout()">Cerrar sesión</button>
+    </div>
+  </header>
+
   <main class="content">
     <div [@routeAnimations]="getRouteAnimationData()">
       <router-outlet></router-outlet>
     </div>
   </main>
+
+  <!-- MOBILE NAV -->
+  <nav class="bottom-nav">
+    <a routerLink="/app/ventas/nueva" routerLinkActive="active">
+      <img class="ico" src="/icons/nav/plus.svg" alt="" />
+      <span>Nueva</span>
+    </a>
+
+    <a routerLink="/app/ventas" routerLinkActive="active">
+      <img class="ico" src="/icons/nav/badge-dollar-sign.svg" alt="" />
+      <span>Ventas</span>
+    </a>
+
+    <a *ngIf="esAdmin" routerLink="/app/productos" routerLinkActive="active">
+      <img class="ico" src="/icons/nav/shopping-cart.svg" alt="" />
+      <span>Productos</span>
+    </a>
+
+    <a *ngIf="esAdmin" routerLink="/app/resumen" routerLinkActive="active">
+      <img class="ico" src="/icons/nav/chart-column-increasing.svg" alt="" />
+      <span>Resumen</span>
+    </a>
+
+    <a routerLink="/app/cierre" routerLinkActive="active">
+      <img class="ico" src="/icons/nav/calendar-check.svg" alt="" />
+      <span>Cierre</span>
+    </a>
+
+    <a routerLink="/app/cierres" routerLinkActive="active">
+      <img class="ico" src="/icons/nav/notebook.svg" alt="" />
+      <span>Cierres</span>
+    </a>
+  </nav>
 </div>
