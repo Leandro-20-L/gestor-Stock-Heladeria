@@ -4,64 +4,43 @@
   Fecha:
   <input type="date" [(ngModel)]="fecha" (change)="cargarTotalDelDia()" />
 </label>
+
 <div class="caja">
   <div class="caja-grid">
-    <!-- Total sistema -->
     <div class="caja-card">
-      <div class="caja-k">Total vendido (sistema)</div>
-
+      <div class="caja-k">Efectivo sistema</div>
       <div class="caja-v" *ngIf="!cargandoTotal; else loadingTotal">
-        $ {{ totalVentasTeorico ?? "-" }}
+        $ {{ totalEfectivoSistema }}
       </div>
-
-      <ng-template #loadingTotal>
-        <div class="caja-v muted">Cargando...</div>
-      </ng-template>
-
-      <div class="caja-s">Ventas confirmadas del día</div>
+      <div class="caja-s">Ventas confirmadas en efectivo</div>
     </div>
 
-    <!-- Total contado -->
     <div class="caja-card">
-      <div class="caja-k">Total contado en caja</div>
+      <div class="caja-k">Efectivo contado</div>
 
       <div class="caja-input">
         <span class="prefix">$</span>
         <input
           type="number"
           min="0"
-          [(ngModel)]="totalCajaContada"
+          [(ngModel)]="efectivoContado"
           placeholder="0"
         />
       </div>
 
-      <div class="caja-s">Ingresá lo que tenés físicamente</div>
+      <div class="caja-s">Único valor que se cuenta físicamente</div>
     </div>
 
-    <!-- Diferencia -->
     <div
       class="caja-card"
-      [class.ok]="
-        totalVentasTeorico !== null &&
-        totalCajaContada !== null &&
-        totalCajaContada - totalVentasTeorico === 0
-      "
-      [class.bad]="
-        totalVentasTeorico !== null &&
-        totalCajaContada !== null &&
-        totalCajaContada - totalVentasTeorico !== 0
-      "
+      [class.ok]="diferenciaEfectivo === 0"
+      [class.bad]="diferenciaEfectivo !== null && diferenciaEfectivo !== 0"
     >
-      <div class="caja-k">Diferencia</div>
+      <div class="caja-k">Diferencia efectivo</div>
 
       <div class="caja-v">
-        <ng-container
-          *ngIf="
-            totalVentasTeorico !== null && totalCajaContada !== null;
-            else sinDif
-          "
-        >
-          $ {{ totalCajaContada - totalVentasTeorico }}
+        <ng-container *ngIf="diferenciaEfectivo !== null; else sinDif">
+          $ {{ diferenciaEfectivo }}
         </ng-container>
 
         <ng-template #sinDif>
@@ -70,53 +49,41 @@
 
         <span
           class="badge"
-          *ngIf="totalVentasTeorico !== null && totalCajaContada !== null"
-          [class.ok]="totalCajaContada - totalVentasTeorico === 0"
-          [class.bad]="totalCajaContada - totalVentasTeorico !== 0"
+          *ngIf="diferenciaEfectivo !== null"
+          [class.ok]="diferenciaEfectivo === 0"
+          [class.bad]="diferenciaEfectivo !== 0"
         >
-          {{ totalCajaContada - totalVentasTeorico === 0 ? "OK" : "Revisar" }}
+          {{ diferenciaEfectivo === 0 ? "OK" : "Revisar" }}
         </span>
       </div>
 
-      <div class="caja-s">Caja contada - sistema</div>
+      <div class="caja-s">Efectivo contado - efectivo sistema</div>
+    </div>
+
+    <div class="caja-card">
+      <div class="caja-k">Transferencia sistema</div>
+      <div class="caja-v">$ {{ totalTransferenciaSistema }}</div>
+      <div class="caja-s">Solo informativo</div>
+    </div>
+
+    <div class="caja-card">
+      <div class="caja-k">Point sistema</div>
+      <div class="caja-v">$ {{ totalPointSistema }}</div>
+      <div class="caja-s">Solo informativo</div>
+    </div>
+
+    <div class="caja-card">
+      <div class="caja-k">Total sistema</div>
+      <div class="caja-v">$ {{ totalSistema }}</div>
+      <div class="caja-s">Efectivo + transferencia + point</div>
     </div>
   </div>
 </div>
 
-<table class="tabla">
-  <thead>
-    <tr>
-      <th>Producto</th>
-      <th>Teórico</th>
-      <th>Contado</th>
-      <th>Diferencia</th>
-    </tr>
-  </thead>
+<ng-template #loadingTotal>
+  <div class="caja-v muted">Cargando...</div>
+</ng-template>
 
-  <tbody>
-    <tr *ngFor="let r of rows">
-      <td>{{ r.nombre }}</td>
-      <td>{{ r.stockActual }} {{ r.unidad }}</td>
-
-      <td>
-        <input
-          type="number"
-          min="0"
-          [(ngModel)]="r.stockContado"
-          placeholder="Contado"
-        />
-      </td>
-
-      <td>
-        <ng-container *ngIf="diferencia(r) !== null; else sinDato">
-          {{ diferencia(r) }}
-        </ng-container>
-        <ng-template #sinDato>-</ng-template>
-      </td>
-    </tr>
-  </tbody>
-</table>
-
-<button (click)="guardar()" [disabled]="guardando || totalCajaContada === null">
+<button (click)="guardar()" [disabled]="guardando || efectivoContado === null">
   {{ guardando ? "Guardando..." : "Guardar cierre" }}
 </button>

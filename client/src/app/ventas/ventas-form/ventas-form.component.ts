@@ -61,7 +61,7 @@ export class VentasFormComponent {
 
   total = computed(() =>
     this.carrito().reduce(
-      (acc, it) => acc + (it.producto.precioVenta ?? 0) * it.cantidad,
+      (acc, item) => acc + this.precioProducto(item.producto) * item.cantidad,
       0,
     ),
   );
@@ -78,6 +78,15 @@ export class VentasFormComponent {
     // Si no, filtramos local (más rápido para el dueño)
   }
 
+  precioProducto(p: Producto) {
+    const medio = this.form.controls.medioPago.value;
+
+    if (medio === 'point' && p.precioPoint != null) {
+      return p.precioPoint;
+    }
+
+    return p.precioVenta ?? 0;
+  }
   refrescarProductos(q?: string) {
     this.cargando.set(true);
     this.ventasService.getProductos({ q }).subscribe({
@@ -157,6 +166,20 @@ export class VentasFormComponent {
   }
 
   confirmar() {
+    const detalleHtml = this.carrito()
+      .map((item) => {
+        const precio = this.precioProducto(item.producto);
+        const subtotal = precio * item.cantidad;
+
+        return `
+      <div style="display:flex; justify-content:space-between; gap:12px; margin:6px 0;">
+        <span>${item.producto.nombre} x${item.cantidad}</span>
+        <b>$${subtotal}</b>
+      </div>
+    `;
+      })
+      .join('');
+
     if (this.carrito().length === 0) {
       alert('Agregá al menos 1 producto.');
       return;
@@ -173,19 +196,28 @@ export class VentasFormComponent {
 
     Swal.fire({
       title: '¿Confirmar venta?',
-      // Muestra el total y el medio de pago en negrita
       html: `
-        Total a cobrar: <b style="font-size: 1.2em; color: #ffd60a">$${this.total()}</b>
-        <br>
-        Medio de pago: <b>${dto.medioPago.toUpperCase()}</b>
-      `,
+    <div style="text-align:left; margin-bottom:12px;">
+      ${detalleHtml}
+    </div>
+
+    <hr style="border-color: rgba(255,255,255,.15);">
+
+    <div style="display:flex; justify-content:space-between; margin-top:12px;">
+      <span>Total a cobrar:</span>
+      <b style="font-size: 1.2em; color: #ffd60a">$${this.total()}</b>
+    </div>
+
+    <br>
+    Medio de pago: <b>${dto.medioPago.toUpperCase()}</b>
+  `,
       icon: 'question',
       showCancelButton: true,
       confirmButtonText: 'Sí, cobrar',
       cancelButtonText: 'Cancelar',
-      confirmButtonColor: '#ffd60a', // Amarillo
-      cancelButtonColor: '#d33', // Rojo
-      background: '#14161c', // Fondo oscuro
+      confirmButtonColor: '#ffd60a',
+      cancelButtonColor: '#d33',
+      background: '#14161c',
       color: '#fff',
     }).then((result) => {
       if (result.isConfirmed) {

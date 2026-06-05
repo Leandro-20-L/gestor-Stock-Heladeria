@@ -1,17 +1,11 @@
 import { Component } from '@angular/core';
-import { ProductoService } from '../services/producto.service';
 import { CierresService } from '../services/cierres.service';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
-import { Producto } from '../productos/producto.model';
 import { StatsService } from '../services/stats.service';
 import Swal from 'sweetalert2';
 
-type Row = Omit<Producto, 'stockActual' | 'stockMinimo'> & {
-  stockActual: number;
-  stockMinimo: number;
-  stockContado: number | null;
-};
+type Medio = 'efectivo' | 'transferencia' | 'point';
 
 @Component({
   selector: 'app-cierre-del-dia',
@@ -20,177 +14,189 @@ type Row = Omit<Producto, 'stockActual' | 'stockMinimo'> & {
   styleUrl: './cierre-del-dia.component.scss',
 })
 export class CierreDelDiaComponent {
-  fecha = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
-  rows: Row[] = [];
+  fecha = new Date().toISOString().slice(0, 10);
+
   guardando = false;
-  totalCajaContada: number | null = null;
-  totalVentasTeorico: number | null = null;
   cargandoTotal = false;
 
+  totalEfectivoSistema = 0;
+  totalTransferenciaSistema = 0;
+  totalPointSistema = 0;
+  totalSistema = 0;
+
+  efectivoContado: number | null = null;
+
   constructor(
-    private productosService: ProductoService,
     private cierresService: CierresService,
     private statsService: StatsService,
   ) {}
 
   ngOnInit() {
-    this.productosService.getAll({ activos: true }).subscribe({
-      next: (productos) => {
-        this.rows = productos.map(
-          (p): Row => ({
-            ...p,
-            stockActual: Number(p.stockActual ?? 0),
-            stockMinimo: Number(p.stockMinimo ?? 0),
-            stockContado: null,
-          }),
-        );
-      },
-    });
     this.cargarTotalDelDia();
   }
 
-  diferencia(r: Row) {
-    if (r.stockContado === null) return null;
-    return Number(r.stockContado) - Number(r.stockActual);
+  get diferenciaEfectivo() {
+    if (this.efectivoContado === null) return null;
+    return Number(this.efectivoContado) - Number(this.totalEfectivoSistema);
   }
 
-  guardar() {
-    // 1. PREPARAR DATOS
-    const items = this.rows
-      .filter((r) => r.stockContado !== null && r.stockContado !== undefined)
-      .map((r) => ({
-        productoId: r._id,
-        stockContado: Number(r.stockContado),
-      }));
-
-    // 2. VALIDACIONES (Usando SweetAlert 'warning')
-    if (items.length === 0) {
-      Swal.fire({
-        icon: 'warning',
-        title: 'Faltan datos',
-        text: 'Cargá el stock contado de al menos un producto.',
-        confirmButtonColor: '#ffc107', // Tu color amarillo
-        color: '#fff',
-        background: '#14161c', // Fondo oscuro
-      });
-      return;
-    }
-
-    if (
-      this.totalCajaContada === null ||
-      Number.isNaN(Number(this.totalCajaContada))
-    ) {
-      Swal.fire({
-        icon: 'warning',
-        title: 'Faltan datos',
-        text: 'Ingresá el total de dinero contado en caja.',
-        confirmButtonColor: '#ffc107',
-        color: '#fff',
-        background: '#14161c',
-      });
-      return;
-    }
-
-    const totalCaja = Number(this.totalCajaContada);
-    if (totalCaja < 0) {
-      Swal.fire({
-        icon: 'warning',
-        title: 'Valor inválido',
-        text: 'El total de caja no puede ser negativo.',
-        confirmButtonColor: '#ffc107',
-        color: '#fff',
-        background: '#14161c',
-      });
-      return;
-    }
-
-    // 3. CONFIRMACIÓN (Preguntar antes de enviar)
-    Swal.fire({
-      title: '¿Confirmar cierre?',
-      text: `Vas a cerrar con $${totalCaja} en caja y ${items.length} productos contados.`,
-      icon: 'question',
-      showCancelButton: true,
-      confirmButtonText: 'Sí, cerrar día',
-      cancelButtonText: 'Cancelar',
-      confirmButtonColor: '#ffd60a', // Amarillo primario
-      cancelButtonColor: '#d33',
-      color: '#fff',
-      background: '#14161c',
-    }).then((result) => {
-      if (result.isConfirmed) {
-        // 4. ESTADO DE CARGA (Loading...)
-        this.guardando = true;
-
-        // Muestra un spinner y bloquea la pantalla
-        Swal.fire({
-          title: 'Guardando cierre...',
-          text: 'Por favor esperá',
-          allowOutsideClick: false,
-          color: '#fff',
-          background: '#14161c',
-          didOpen: () => {
-            Swal.showLoading();
-          },
-        });
-
-        // 5. LLAMADA AL SERVICIO
-        this.cierresService
-          .crearCierre({
-            fecha: this.fecha,
-            items,
-            totalCajaContada: totalCaja,
-          })
-          .subscribe({
-            next: () => {
-              this.guardando = false;
-
-              // 6. ÉXITO
-              Swal.fire({
-                title: '¡Cierre guardado!',
-                text: 'La caja del día ha sido cerrada correctamente.',
-                icon: 'success',
-                confirmButtonColor: '#ffd60a',
-                color: '#fff',
-                background: '#14161c',
-              });
-
-              // Limpieza
-              this.totalCajaContada = null;
-              this.rows = this.rows.map((r) => ({ ...r, stockContado: null }));
-              this.cargarTotalDelDia(); // Recargar datos si es necesario
-            },
-            error: (e) => {
-              this.guardando = false;
-
-              // 7. ERROR
-              Swal.fire({
-                title: 'Error',
-                text: e?.error?.message ?? 'No se pudo guardar el cierre.',
-                icon: 'error',
-                confirmButtonColor: '#d33',
-                color: '#fff',
-                background: '#14161c',
-              });
-            },
-          });
-      }
-    });
-  }
   cargarTotalDelDia() {
     this.cargandoTotal = true;
-    this.totalVentasTeorico = null;
+
+    this.totalEfectivoSistema = 0;
+    this.totalTransferenciaSistema = 0;
+    this.totalPointSistema = 0;
+    this.totalSistema = 0;
 
     this.statsService
       .getResumen({ from: this.fecha, to: this.fecha })
       .subscribe({
         next: (res) => {
-          this.totalVentasTeorico = res.totalFacturado ?? 0;
+          this.totalEfectivoSistema = this.totalPorMedio(res, 'efectivo');
+          this.totalTransferenciaSistema = this.totalPorMedio(
+            res,
+            'transferencia',
+          );
+          this.totalPointSistema = this.totalPorMedio(res, 'point');
+
+          this.totalSistema =
+            this.totalEfectivoSistema +
+            this.totalTransferenciaSistema +
+            this.totalPointSistema;
+
           this.cargandoTotal = false;
         },
         error: () => {
           this.cargandoTotal = false;
-          this.totalVentasTeorico = null;
+
+          Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'No se pudieron cargar las ventas del día.',
+            confirmButtonColor: '#d33',
+            color: '#fff',
+            background: '#14161c',
+          });
         },
       });
+  }
+
+  private totalPorMedio(res: any, medio: Medio) {
+    return res.porMedioPago?.find((x: any) => x.medio === medio)?.total ?? 0;
+  }
+
+  guardar() {
+    if (
+      this.efectivoContado === null ||
+      Number.isNaN(Number(this.efectivoContado))
+    ) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Faltan datos',
+        text: 'Ingresá el efectivo contado en caja.',
+        confirmButtonColor: '#ffc107',
+        color: '#fff',
+        background: '#14161c',
+      });
+      return;
+    }
+
+    const efectivoContado = Number(this.efectivoContado);
+
+    if (efectivoContado < 0) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Valor inválido',
+        text: 'El efectivo contado no puede ser negativo.',
+        confirmButtonColor: '#ffc107',
+        color: '#fff',
+        background: '#14161c',
+      });
+      return;
+    }
+
+    const diferenciaEfectivo =
+      efectivoContado - Number(this.totalEfectivoSistema);
+
+    Swal.fire({
+      title: '¿Confirmar cierre?',
+      html: `
+        <div style="text-align:left">
+          <p>Efectivo sistema: <b>$${this.totalEfectivoSistema}</b></p>
+          <p>Efectivo contado: <b>$${efectivoContado}</b></p>
+          <p>Diferencia efectivo: <b>$${diferenciaEfectivo}</b></p>
+          <hr style="border-color: rgba(255,255,255,.15)">
+          <p>Transferencia sistema: <b>$${this.totalTransferenciaSistema}</b></p>
+          <p>Point sistema: <b>$${this.totalPointSistema}</b></p>
+          <p>Total sistema: <b>$${this.totalSistema}</b></p>
+        </div>
+      `,
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonText: 'Sí, cerrar día',
+      cancelButtonText: 'Cancelar',
+      confirmButtonColor: '#ffd60a',
+      cancelButtonColor: '#d33',
+      color: '#fff',
+      background: '#14161c',
+    }).then((result) => {
+      if (!result.isConfirmed) return;
+
+      this.guardando = true;
+
+      Swal.fire({
+        title: 'Guardando cierre...',
+        text: 'Por favor esperá',
+        allowOutsideClick: false,
+        color: '#fff',
+        background: '#14161c',
+        didOpen: () => Swal.showLoading(),
+      });
+
+      this.cierresService
+        .crearCierre({
+          fecha: this.fecha,
+          items: [],
+          totalVentasTeorico: this.totalSistema,
+          totalCajaContada: efectivoContado,
+
+          totalEfectivoSistema: this.totalEfectivoSistema,
+          totalTransferenciaSistema: this.totalTransferenciaSistema,
+          totalPointSistema: this.totalPointSistema,
+
+          efectivoContado,
+          diferenciaEfectivo,
+          diferenciaCaja: diferenciaEfectivo,
+        } as any)
+        .subscribe({
+          next: () => {
+            this.guardando = false;
+
+            Swal.fire({
+              title: '¡Cierre guardado!',
+              text: 'El cierre de caja fue guardado correctamente.',
+              icon: 'success',
+              confirmButtonColor: '#ffd60a',
+              color: '#fff',
+              background: '#14161c',
+            });
+
+            this.efectivoContado = null;
+            this.cargarTotalDelDia();
+          },
+          error: (e) => {
+            this.guardando = false;
+
+            Swal.fire({
+              title: 'Error',
+              text: e?.error?.message ?? 'No se pudo guardar el cierre.',
+              icon: 'error',
+              confirmButtonColor: '#d33',
+              color: '#fff',
+              background: '#14161c',
+            });
+          },
+        });
+    });
   }
 }

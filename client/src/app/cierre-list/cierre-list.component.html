@@ -2,7 +2,7 @@
   <div class="header">
     <div>
       <h2>Historial de cierres</h2>
-      <p class="sub">Control diario de stock · solo admin</p>
+      <p class="sub">Control diario de caja · solo admin</p>
     </div>
   </div>
 
@@ -11,47 +11,61 @@
   <div class="tabla" *ngIf="!cargando && cierres.length > 0">
     <div class="fila header-row">
       <div>Fecha</div>
-      <div>Productos</div>
-      <div>Diferencias</div>
+      <div>Efectivo sistema</div>
+      <div>Efectivo contado</div>
+      <div>Diferencia efectivo</div>
+      <div>Transferencia</div>
+      <div>Point</div>
       <div>Total sistema</div>
-      <div>Total contado</div>
-      <div>Diferencia</div>
       <div></div>
     </div>
 
-    <div class="fila" *ngFor="let c of cierres">
-      <div class="fecha">{{ c.fecha }}</div>
-
-      <div>
-        <b>{{ c.totalProductos }}</b>
+    <div class="fila cierre-card" *ngFor="let c of cierres">
+      <div class="fecha">
+        <span class="label-mobile">Fecha</span>
+        {{ c.fecha }}
       </div>
 
-      <div>
+      <div class="money">
+        <span class="label-mobile">Efectivo sistema</span>
+        <b>$ {{ c.totalEfectivoSistema ?? 0 }}</b>
+      </div>
+
+      <div class="money">
+        <span class="label-mobile">Efectivo contado</span>
+        <b>$ {{ c.efectivoContado ?? c.totalCajaContada }}</b>
+      </div>
+
+      <div class="money">
+        <span class="label-mobile">Diferencia efectivo</span>
         <span
           class="badge"
-          [class.ok]="c.conDiferencias === 0"
-          [class.bad]="c.conDiferencias > 0"
+          [class.ok]="(c.diferenciaEfectivo ?? c.diferenciaCaja) === 0"
+          [class.bad]="(c.diferenciaEfectivo ?? c.diferenciaCaja) !== 0"
         >
-          {{ c.conDiferencias === 0 ? "OK" : c.conDiferencias + " dif." }}
+          {{
+            (c.diferenciaEfectivo ?? c.diferenciaCaja) === 0
+              ? "OK"
+              : "$ " + (c.diferenciaEfectivo ?? c.diferenciaCaja)
+          }}
         </span>
       </div>
+
       <div class="money">
+        <span class="label-mobile">Transferencia</span>
+        <b>$ {{ c.totalTransferenciaSistema ?? 0 }}</b>
+      </div>
+
+      <div class="money">
+        <span class="label-mobile">Point</span>
+        <b>$ {{ c.totalPointSistema ?? 0 }}</b>
+      </div>
+
+      <div class="money total">
+        <span class="label-mobile">Total sistema</span>
         <b>$ {{ c.totalVentasTeorico }}</b>
       </div>
 
-      <div class="money">
-        <b>$ {{ c.totalCajaContada }}</b>
-      </div>
-
-      <div class="money">
-        <span
-          class="badge"
-          [class.ok]="c.diferenciaCaja === 0"
-          [class.bad]="c.diferenciaCaja !== 0"
-        >
-          {{ c.diferenciaCaja === 0 ? "OK" : "$ " + c.diferenciaCaja }}
-        </span>
-      </div>
       <div class="actions">
         <a class="btn-ghost" [routerLink]="['/app/cierres', c._id]">
           Ver detalle

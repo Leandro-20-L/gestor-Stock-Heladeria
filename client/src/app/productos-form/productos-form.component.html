@@ -67,6 +67,24 @@
     </label>
 
     <label>
+      Precio Point
+      <input
+        type="number"
+        formControlName="precioPoint"
+        min="0"
+        placeholder="Opcional"
+      />
+
+      <small class="hint">
+        Si queda vacío, se usa el precio de venta normal.
+      </small>
+
+      <small class="error-msg" *ngIf="form.get('precioPoint')?.hasError('min')">
+        No puede ser negativo.
+      </small>
+    </label>
+
+    <label>
       Costo
       <input type="number" formControlName="costo" min="0" placeholder="0" />
 
@@ -121,6 +139,48 @@
       </small>
     </label>
   </div>
+
+  <section class="stock-section">
+    <div class="section-head">
+      <div>
+        <h3>Insumos descontados</h3>
+        <p>Usalo para productos como hamburguesas. Ej: descuenta pan y paty.</p>
+      </div>
+
+      <button type="button" class="btn-add" (click)="agregarInsumo()">
+        + Agregar insumo
+      </button>
+    </div>
+
+    <div
+      class="insumo-row"
+      *ngFor="let item of descuentaStock.controls; let i = index"
+      [formGroup]="$any(item)"
+    >
+      <label>
+        Producto / insumo
+        <select formControlName="productoId">
+          <option value="">Seleccionar</option>
+          <option *ngFor="let p of productosInsumos" [value]="p._id">
+            {{ p.nombre }}
+          </option>
+        </select>
+      </label>
+
+      <label>
+        Cantidad
+        <input type="number" min="1" formControlName="cantidad" />
+      </label>
+
+      <button type="button" class="btn-remove" (click)="quitarInsumo(i)">
+        Quitar
+      </button>
+    </div>
+
+    <div class="empty-insumos" *ngIf="descuentaStock.length === 0">
+      Este producto descuenta su propio stock.
+    </div>
+  </section>
 
   <div class="actions">
     <button type="button" (click)="volver()">Cancelar</button>

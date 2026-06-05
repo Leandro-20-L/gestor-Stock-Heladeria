@@ -171,3 +171,94 @@
     grid-template-columns: 1fr;
   }
 }
+
+@media (max-width: 700px) {
+  :host {
+    background: #f6f7f9;
+  }
+
+  .page {
+    padding: 16px;
+    padding-bottom: 96px; // espacio para bottom-nav
+  }
+
+  .head {
+    display: grid;
+    gap: 14px;
+    margin-bottom: 16px;
+
+    h2 {
+      font-size: 24px;
+      line-height: 1.1;
+    }
+
+    .sub {
+      font-size: 12px;
+    }
+  }
+
+  .filters {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    width: 100%;
+
+    label {
+      width: 100%;
+    }
+
+    input {
+      width: 100%;
+      min-width: 0;
+      font-size: 14px;
+    }
+
+    button {
+      grid-column: 1 / -1;
+      width: 100%;
+      min-height: 44px;
+    }
+  }
+
+  .cards {
+    grid-template-columns: 1fr;
+    gap: 12px;
+    margin-bottom: 16px;
+
+    .card {
+      padding: 16px;
+      border-radius: 18px;
+
+      .k {
+        font-size: 11px;
+      }
+
+      .v {
+        font-size: 26px;
+      }
+
+      .s {
+        font-size: 12px;
+      }
+    }
+  }
+
+  .grid {
+    grid-template-columns: 1fr;
+    gap: 14px;
+
+    .panel {
+      padding: 14px;
+      border-radius: 18px;
+      overflow-x: auto;
+    }
+
+    .panel-title {
+      font-size: 14px;
+    }
+
+    canvas {
+      min-height: 240px;
+      max-height: 260px;
+    }
+  }
+}

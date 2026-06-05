@@ -183,3 +183,134 @@ select option {
   background-color: #14161c;
   color: #fff;
 }
+
+.hint {
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.stock-section {
+  margin-top: 14px;
+  padding: 14px;
+  border-radius: 18px;
+  border: 1px solid rgba(255, 214, 10, 0.14);
+  background: rgba(255, 214, 10, 0.04);
+}
+
+.section-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 12px;
+
+  h3 {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 900;
+  }
+
+  p {
+    margin: 4px 0 0;
+    font-size: 12px;
+    font-weight: 700;
+    color: rgba(255, 255, 255, 0.55);
+  }
+}
+
+.btn-add {
+  padding: 10px 12px;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 214, 10, 0.4);
+  background: rgba(255, 214, 10, 0.12);
+  color: #fff;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.insumo-row {
+  display: grid;
+  grid-template-columns: 1fr 150px auto;
+  gap: 10px;
+  align-items: end;
+  margin-top: 10px;
+}
+
+.btn-remove {
+  height: 46px;
+  padding: 0 14px;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 107, 107, 0.45);
+  background: rgba(255, 107, 107, 0.12);
+  color: #fff;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.empty-insumos {
+  margin-top: 10px;
+  padding: 12px;
+  border-radius: 14px;
+  border: 1px dashed rgba(255, 255, 255, 0.13);
+  color: rgba(255, 255, 255, 0.55);
+  font-weight: 800;
+  background: rgba(255, 255, 255, 0.03);
+}
+
+@media (max-width: 700px) {
+  h2 {
+    font-size: 24px;
+  }
+
+  form {
+    padding: 12px;
+    border-radius: 18px;
+  }
+
+  .grid {
+    grid-template-columns: 1fr;
+  }
+
+  label {
+    padding: 12px;
+  }
+
+  input,
+  select {
+    min-height: 46px;
+    font-size: 15px;
+  }
+
+  .section-head {
+    flex-direction: column;
+  }
+
+  .btn-add {
+    width: 100%;
+    min-height: 46px;
+  }
+
+  .insumo-row {
+    grid-template-columns: 1fr;
+    padding: 12px;
+    border-radius: 16px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+  }
+
+  .btn-remove {
+    width: 100%;
+  }
+
+  .actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+
+    button {
+      width: 100%;
+      min-height: 46px;
+    }
+  }
+}

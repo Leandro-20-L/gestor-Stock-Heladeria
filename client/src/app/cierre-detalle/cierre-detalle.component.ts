@@ -43,32 +43,56 @@ export class CierreDetalleComponent {
   exportarExcel() {
     if (!this.cierre) return;
 
-    // Hoja 1: Resumen caja (lo que te importa del día)
+    const dif =
+      this.cierre.diferenciaEfectivo ?? this.cierre.diferenciaCaja ?? 0;
+
+    const efectivoContado =
+      this.cierre.efectivoContado ?? this.cierre.totalCajaContada ?? 0;
+
     const resumen = [
       { Campo: 'Fecha', Valor: this.cierre.fecha },
-      { Campo: 'Total sistema', Valor: this.cierre.totalVentasTeorico ?? 0 },
-      { Campo: 'Total contado', Valor: this.cierre.totalCajaContada ?? 0 },
-      { Campo: 'Diferencia', Valor: this.cierre.diferenciaCaja ?? 0 },
-      { Campo: 'Productos cargados', Valor: this.cierre.totalProductos ?? 0 },
-      { Campo: 'Con diferencias', Valor: this.cierre.conDiferencias ?? 0 },
+      {
+        Campo: 'Efectivo sistema',
+        Valor: this.cierre.totalEfectivoSistema ?? 0,
+      },
+      {
+        Campo: 'Efectivo contado',
+        Valor: efectivoContado,
+      },
+      {
+        Campo: 'Diferencia efectivo',
+        Valor: dif,
+      },
+      {
+        Campo: 'Transferencia sistema',
+        Valor: this.cierre.totalTransferenciaSistema ?? 0,
+      },
+      {
+        Campo: 'Point sistema',
+        Valor: this.cierre.totalPointSistema ?? 0,
+      },
+      {
+        Campo: 'Total sistema',
+        Valor: this.cierre.totalVentasTeorico ?? 0,
+      },
     ];
 
     const wsResumen = XLSX.utils.json_to_sheet(resumen);
 
-    // Hoja 2: Detalle (Producto + teórico/contado + diferencia)
-    const detalle = this.cierre.items.map((it) => ({
-      Producto: it.productoId.nombre,
-      Teorico: it.stockTeorico,
-      Contado: it.stockContado,
-      Diferencia: it.diferencia,
-    }));
-
-    const wsDetalle = XLSX.utils.json_to_sheet(detalle);
-
-    // Workbook
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, wsResumen, 'Resumen');
-    XLSX.utils.book_append_sheet(wb, wsDetalle, 'Detalle');
+
+    if (this.cierre.items && this.cierre.items.length > 0) {
+      const detalle = this.cierre.items.map((it) => ({
+        Producto: it.productoId.nombre,
+        Teorico: it.stockTeorico,
+        Contado: it.stockContado,
+        Diferencia: it.diferencia,
+      }));
+
+      const wsDetalle = XLSX.utils.json_to_sheet(detalle);
+      XLSX.utils.book_append_sheet(wb, wsDetalle, 'Stock');
+    }
 
     XLSX.writeFile(wb, `cierre_${this.cierre.fecha}.xlsx`);
   }

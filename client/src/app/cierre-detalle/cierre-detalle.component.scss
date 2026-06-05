@@ -242,3 +242,29 @@
     justify-content: flex-start;
   }
 }
+
+.total-card {
+  border-color: rgba(255, 214, 10, 0.25);
+  background: rgba(255, 214, 10, 0.08);
+}
+
+@media (max-width: 700px) {
+  .topbar {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .btn-primary,
+  .btn-ghost {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .header h2 {
+    font-size: 22px;
+  }
+
+  .stat .value {
+    font-size: 20px;
+  }
+}

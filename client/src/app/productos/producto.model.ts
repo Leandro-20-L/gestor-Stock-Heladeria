@@ -1,11 +1,17 @@
 export type Categoria = 'helado' | 'bebida' | 'comida';
 export type Unidad = 'kg' | 'unidad';
 
+export interface DescuentoStock {
+  productoId: string;
+  cantidad: number;
+}
+
 export interface Producto {
   _id: string;
   nombre: string;
   categoria: Categoria;
   precioVenta?: number;
+  precioPoint?: number;
   costo?: number;
   stockActual?: number;
   stockMinimo?: number;
@@ -14,4 +20,5 @@ export interface Producto {
   createdAt?: string;
   updatedAt?: string;
   stockBajo?: boolean;
+  descuentaStock?: DescuentoStock[];
 }
