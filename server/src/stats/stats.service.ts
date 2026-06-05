@@ -35,10 +35,15 @@ export class StatsService {
     if (params.from || params.to) {
       match.createdAt = {};
       if (params.from) {
-        match.createdAt.$gte = new Date(params.from + 'T00:00:00.000Z');
+        match.createdAt.$gte = new Date(params.from + 'T03:00:00.000Z');
       }
+
       if (params.to) {
-        match.createdAt.$lte = new Date(params.to + 'T23:59:59.999Z');
+        const hasta = new Date(params.to + 'T03:00:00.000Z');
+        hasta.setUTCDate(hasta.getUTCDate() + 1);
+        hasta.setUTCMilliseconds(hasta.getUTCMilliseconds() - 1);
+
+        match.createdAt.$lte = hasta;
       }
     }
 

@@ -21,18 +21,45 @@ class CierreItemInputDto {
 
 export class CreateCierreDto {
   @IsString()
-  fecha: string; // 'YYYY-MM-DD'
+  fecha: string;
 
   @IsOptional()
   @IsMongoId()
   usuarioId?: string;
 
+  @IsOptional()
   @IsArray()
   @ValidateNested({ each: true })
   @Type(() => CierreItemInputDto)
-  items: CierreItemInputDto[];
+  items?: CierreItemInputDto[];
 
   @IsNumber()
   @Min(0)
   totalCajaContada: number;
+
+  @IsNumber()
+  @Min(0)
+  totalVentasTeorico: number;
+
+  @IsNumber()
+  @Min(0)
+  totalEfectivoSistema: number;
+
+  @IsNumber()
+  @Min(0)
+  totalTransferenciaSistema: number;
+
+  @IsNumber()
+  @Min(0)
+  totalPointSistema: number;
+
+  @IsNumber()
+  @Min(0)
+  efectivoContado: number;
+
+  @IsNumber()
+  diferenciaEfectivo: number;
+
+  @IsNumber()
+  diferenciaCaja: number;
 }

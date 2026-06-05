@@ -43,6 +43,21 @@ export class Cierre {
 
   @Prop({ required: true, default: 0 })
   diferenciaCaja: number; // totalCajaContada - totalVentasTeorico
+
+  @Prop({ required: true, min: 0, default: 0 })
+  totalEfectivoSistema: number;
+
+  @Prop({ required: true, min: 0, default: 0 })
+  totalTransferenciaSistema: number;
+
+  @Prop({ required: true, min: 0, default: 0 })
+  totalPointSistema: number;
+
+  @Prop({ required: true, min: 0, default: 0 })
+  efectivoContado: number;
+
+  @Prop({ required: true, default: 0 })
+  diferenciaEfectivo: number;
 }
 
 export type CierreDocument = Cierre & Document;

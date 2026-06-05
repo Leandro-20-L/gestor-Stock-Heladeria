@@ -33,26 +33,33 @@ export class CierresService {
     const existente = await this.cierreModel
       .findOne({ fecha: dto.fecha })
       .exec();
-    if (existente)
+
+    if (existente) {
       throw new BadRequestException(`Ya existe un cierre para ${dto.fecha}`);
+    }
 
-    const ids = dto.items.map((i) => new Types.ObjectId(i.productoId));
+    const inputItems = dto.items ?? [];
 
-    // ✅ lean() + tipado mínimo
+    const ids = inputItems.map((i) => new Types.ObjectId(i.productoId));
+
     const productos = await this.productoModel
       .find({ _id: { $in: ids } })
       .select({ _id: 1, stockActual: 1 })
       .lean<ProductoMin[]>()
       .exec();
 
-    // ✅ Map tipado
     const mapProd = new Map<string, ProductoMin>();
-    for (const p of productos) mapProd.set(String(p._id), p);
 
-    const itemsFinal = dto.items.map((i) => {
-      const prod = mapProd.get(i.productoId); // ✅ ya no es any
-      if (!prod)
+    for (const p of productos) {
+      mapProd.set(String(p._id), p);
+    }
+
+    const itemsFinal = inputItems.map((i) => {
+      const prod = mapProd.get(i.productoId);
+
+      if (!prod) {
         throw new NotFoundException(`Producto no encontrado: ${i.productoId}`);
+      }
 
       const stockTeorico = Number(prod.stockActual ?? 0);
       const stockContado = Number(i.stockContado);
@@ -68,34 +75,46 @@ export class CierresService {
 
     const conDiferencias = itemsFinal.filter((x) => x.diferencia !== 0).length;
 
-    // ✅ TOTAL VENTAS TEÓRICO DEL DÍA (confirmadas)
-    const from = new Date(`${dto.fecha}T00:00:00.000Z`);
-    const to = new Date(`${dto.fecha}T23:59:59.999Z`);
+    const totalEfectivoSistema = Number(dto.totalEfectivoSistema ?? 0);
+    const totalTransferenciaSistema = Number(
+      dto.totalTransferenciaSistema ?? 0,
+    );
+    const totalPointSistema = Number(dto.totalPointSistema ?? 0);
 
-    const agg = await this.ventaModel.aggregate<{ total: number }>([
-      {
-        $match: {
-          estado: 'confirmada',
-          createdAt: { $gte: from, $lte: to },
-        },
-      },
-      { $group: { _id: null, total: { $sum: '$total' } } },
-    ]);
+    const totalVentasTeorico = Number(
+      dto.totalVentasTeorico ??
+        totalEfectivoSistema + totalTransferenciaSistema + totalPointSistema,
+    );
 
-    const totalVentasTeorico = agg[0]?.total ?? 0;
+    const efectivoContado = Number(
+      dto.efectivoContado ?? dto.totalCajaContada ?? 0,
+    );
 
-    const totalCajaContada = Number(dto.totalCajaContada ?? 0);
-    const diferenciaCaja = totalCajaContada - totalVentasTeorico;
+    const diferenciaEfectivo = Number(
+      dto.diferenciaEfectivo ?? efectivoContado - totalEfectivoSistema,
+    );
+
+    const totalCajaContada = efectivoContado;
+
+    const diferenciaCaja = Number(dto.diferenciaCaja ?? diferenciaEfectivo);
 
     const cierre = await this.cierreModel.create({
       fecha: dto.fecha,
       usuarioId: dto.usuarioId ? new Types.ObjectId(dto.usuarioId) : undefined,
+
       items: itemsFinal,
       totalProductos: itemsFinal.length,
       conDiferencias,
+
       totalVentasTeorico,
       totalCajaContada,
       diferenciaCaja,
+
+      totalEfectivoSistema,
+      totalTransferenciaSistema,
+      totalPointSistema,
+      efectivoContado,
+      diferenciaEfectivo,
     });
 
     return cierre;

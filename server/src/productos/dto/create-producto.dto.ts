@@ -1,4 +1,14 @@
-import { IsIn, IsNumber, IsOptional, IsString, Min } from 'class-validator';
+import {
+  IsIn,
+  IsNumber,
+  IsOptional,
+  IsString,
+  Min,
+  ValidateNested,
+  IsMongoId,
+  IsArray,
+} from 'class-validator';
+import { Type } from 'class-transformer';
 
 export class CreateProductoDto {
   @IsString()
@@ -26,4 +36,24 @@ export class CreateProductoDto {
 
   @IsIn(['kg', 'unidad'])
   unidad: 'kg' | 'unidad';
+
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  precioPoint?: number;
+
+  @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => DescuentoStockDto)
+  descuentaStock?: DescuentoStockDto[];
+}
+
+class DescuentoStockDto {
+  @IsMongoId()
+  productoId: string;
+
+  @IsNumber()
+  @Min(1)
+  cantidad: number;
 }

@@ -22,45 +22,101 @@ export class VentasService {
     private readonly productoModel: Model<ProductoDocument>,
   ) {}
   async create(dto: CreateVentaDto) {
-    //evita crear ventas vacias
-    if (!dto.items?.length)
-      throw new BadRequestException(`La venta debe tener items`);
-    //estructura nombre: helado cantidad: 3
+    if (!dto.items?.length) {
+      throw new BadRequestException('La venta debe tener items');
+    }
+
     const map = new Map<string, number>();
+
     for (const it of dto.items) {
       const id = (it.productoId || '').trim();
-      if (!isValidObjectId(id))
-        throw new BadRequestException(`ProductoId invalido: ${it.productoId}`);
+
+      if (!isValidObjectId(id)) {
+        throw new BadRequestException(`ProductoId inválido: ${it.productoId}`);
+      }
+
+      if (it.cantidad < 1) {
+        throw new BadRequestException(`La cantidad debe ser mayor a 0`);
+      }
+
       map.set(id, (map.get(id) ?? 0) + it.cantidad);
     }
 
-    //Convierte los IDs string → ObjectId
     const ids = Array.from(map.keys()).map((id) => new Types.ObjectId(id));
-    //trae productos que esten activos y que existan
+
     const productos = await this.productoModel
       .find({ _id: { $in: ids }, activo: true })
       .exec();
 
     if (productos.length !== ids.length) {
       throw new NotFoundException(
-        `Uno o mas productos no existen o estan inactivos`,
+        'Uno o más productos no existen o están inactivos',
       );
     }
 
-    // Validar stock
+    /*
+    descuentosStock:
+    key = ID del producto/insumo que realmente se descuenta
+    value = cantidad total a descontar
+  */
+    const descuentosStock = new Map<string, number>();
+
     for (const p of productos) {
-      const qty = map.get(p._id.toString()) ?? 0;
-      if ((p.stockActual ?? 0) < qty) {
-        throw new BadRequestException(
-          `Stock insuficiente para "${p.nombre}" (disp: ${p.stockActual}, req: ${qty})`,
+      const cantidadVendida = map.get(p._id.toString()) ?? 0;
+
+      if (p.descuentaStock?.length) {
+        for (const d of p.descuentaStock) {
+          const idStock = d.productoId.toString();
+          const cantidadADescontar = Number(d.cantidad) * cantidadVendida;
+
+          descuentosStock.set(
+            idStock,
+            (descuentosStock.get(idStock) ?? 0) + cantidadADescontar,
+          );
+        }
+      } else {
+        const idStock = p._id.toString();
+
+        descuentosStock.set(
+          idStock,
+          (descuentosStock.get(idStock) ?? 0) + cantidadVendida,
         );
       }
     }
 
-    // Armar items snapshot + total
+    const idsStock = Array.from(descuentosStock.keys()).map(
+      (id) => new Types.ObjectId(id),
+    );
+
+    const productosStock = await this.productoModel
+      .find({ _id: { $in: idsStock }, activo: true })
+      .exec();
+
+    if (productosStock.length !== idsStock.length) {
+      throw new NotFoundException(
+        'Uno o más productos de stock no existen o están inactivos',
+      );
+    }
+
+    for (const p of productosStock) {
+      const requerido = descuentosStock.get(p._id.toString()) ?? 0;
+      const disponible = p.stockActual ?? 0;
+
+      if (disponible < requerido) {
+        throw new BadRequestException(
+          `Stock insuficiente para "${p.nombre}" (disp: ${disponible}, req: ${requerido})`,
+        );
+      }
+    }
+
     const itemsSnapshot = productos.map((p) => {
-      const cantidad = map.get(p._id.toString())!;
-      const precio = p.precioVenta ?? 0;
+      const cantidad = map.get(p._id.toString()) ?? 0;
+
+      const precio =
+        dto.medioPago === 'point' && p.precioPoint != null
+          ? p.precioPoint
+          : (p.precioVenta ?? 0);
+
       const subtotal = precio * cantidad;
 
       return {
@@ -74,15 +130,15 @@ export class VentasService {
 
     const total = itemsSnapshot.reduce((acc, it) => acc + it.subtotal, 0);
 
-    // Descontar stock (secuencial, MVP)
-    for (const p of productos) {
-      const cantidad = map.get(p._id.toString())!;
+    for (const [idStock, cantidad] of descuentosStock.entries()) {
       await this.productoModel
-        .updateOne({ _id: p._id }, { $inc: { stockActual: -cantidad } })
+        .updateOne(
+          { _id: new Types.ObjectId(idStock) },
+          { $inc: { stockActual: -cantidad } },
+        )
         .exec();
     }
 
-    // Guardar venta
     return this.ventaModel.create({
       items: itemsSnapshot,
       total,
