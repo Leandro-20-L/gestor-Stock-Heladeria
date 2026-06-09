@@ -25,6 +25,15 @@
   <button type="button" (click)="limpiar()" [disabled]="cargando()">
     Limpiar
   </button>
+
+  <button
+    type="button"
+    class="refresh-btn"
+    (click)="refrescarProductos(undefined, true)"
+    [disabled]="cargando()"
+  >
+    <img src="refresh-ccw.svg" alt="" />
+  </button>
 </div>
 
 <div class="category-tabs">
@@ -57,15 +66,6 @@
   <!-- Lista de productos -->
   <section class="panel">
     <h3 class="panel-title">Productos</h3>
-
-    <button
-      type="button"
-      class="refresh-btn"
-      (click)="refrescarProductos(undefined, true)"
-      [disabled]="cargando()"
-    >
-      <img src="refresh-ccw.svg" alt="" />
-    </button>
 
     <div *ngIf="cargando()">Cargando...</div>
 
