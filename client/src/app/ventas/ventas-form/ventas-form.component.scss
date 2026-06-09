@@ -50,6 +50,48 @@ h2 {
   }
 }
 
+.refresh-btn {
+  padding: 10px 14px;
+
+  border: none;
+  border-radius: 14px;
+
+  background: linear-gradient(180deg, #ffd60a, #ffb703);
+  color: #151515;
+
+  font-weight: 900;
+  cursor: pointer;
+
+  box-shadow: 0 8px 18px rgba(255, 214, 10, 0.18);
+
+  transition: all 0.2s ease;
+
+  &:hover:not(:disabled) {
+    transform: translateY(-1px);
+  }
+
+  &:active {
+    transform: scale(0.97);
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    box-shadow: none;
+  }
+}
+
+.panel-title {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.panel-title .refresh-btn {
+  padding: 8px 12px;
+}
+
 .top select {
   padding: 12px 12px;
   border-radius: 14px;

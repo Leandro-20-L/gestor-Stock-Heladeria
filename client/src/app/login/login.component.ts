@@ -52,7 +52,7 @@ export class LoginComponent {
         this.snackBar.open(`¡Hola de nuevo, ${nombre}! 👋`, 'Cerrar', {
           duration: 3000,
           horizontalPosition: 'center',
-          verticalPosition: 'bottom',
+          verticalPosition: 'top',
           panelClass: ['custom-snackbar'], // Opcional para estilos CSS
         });
         this.router.navigateByUrl('/dashboard');

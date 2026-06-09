@@ -56,7 +56,16 @@
 <div class="layout">
   <!-- Lista de productos -->
   <section class="panel">
-    <h3>Productos</h3>
+    <h3 class="panel-title">Productos</h3>
+
+    <button
+      type="button"
+      class="refresh-btn"
+      (click)="refrescarProductos(undefined, true)"
+      [disabled]="cargando()"
+    >
+      <img src="refresh-ccw.svg" alt="" />
+    </button>
 
     <div *ngIf="cargando()">Cargando...</div>
 

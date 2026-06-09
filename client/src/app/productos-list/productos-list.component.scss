@@ -3,6 +3,29 @@
   color: #fff;
 }
 
+.panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.refresh-btn {
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 214, 10, 0.35);
+  background: rgba(255, 214, 10, 0.1);
+  color: #ffd60a;
+  cursor: pointer;
+  font-size: 18px;
+  font-weight: bold;
+}
+
+.refresh-btn img {
+  width: 20px;
+  height: 20px;
+}
+
 /* HEADER */
 .header {
   display: flex;

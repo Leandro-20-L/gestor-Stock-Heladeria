@@ -35,23 +35,49 @@ export class ProductosListComponent {
     this.cargar();
   }
 
-  cargar() {
+  cargar(mostrarToast = false) {
     const q = this.q.value.trim();
     const categoria = (this.categoria.value || undefined) as
       | Categoria
       | undefined;
     const activos = this.verInactivos.value ? false : true;
-    const stockBajo = this.stockBajo.value ? true : undefined;
 
     this.productosService
-      .getAll({ q: q || undefined, categoria, activos, stockBajo })
+      .getAll({ q: q || undefined, categoria, activos })
       .subscribe({
-        next: (data) => this.productos.set(data),
-        error: () => {
+        next: (data) => {
+          this.productos.set(data);
+
+          if (mostrarToast) {
+            Swal.fire({
+              toast: true,
+              position: 'top-end',
+              icon: 'success',
+              title: 'Productos actualizados',
+              showConfirmButton: false,
+              timer: 1500,
+              background: '#14161c',
+              color: '#fff',
+            });
+          }
+        },
+        error: (err) => {
+          if (err.status === 401) {
+            Swal.fire({
+              icon: 'warning',
+              title: 'Sesión vencida',
+              text: 'Cerrá sesión e ingresá nuevamente.',
+              confirmButtonColor: '#ffd60a',
+              background: '#14161c',
+              color: '#fff',
+            });
+            return;
+          }
+
           Swal.fire({
             icon: 'error',
             title: 'Error de conexión',
-            text: 'No se pudieron cargar los productos.',
+            text: `No se pudieron cargar los productos. Código: ${err.status}`,
             confirmButtonColor: '#d33',
             background: '#14161c',
             color: '#fff',

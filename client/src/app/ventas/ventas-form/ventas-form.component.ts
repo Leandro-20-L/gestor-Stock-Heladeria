@@ -87,11 +87,50 @@ export class VentasFormComponent {
 
     return p.precioVenta ?? 0;
   }
-  refrescarProductos(q?: string) {
+  refrescarProductos(q?: string, mostrarToast = false) {
     this.cargando.set(true);
+
     this.ventasService.getProductos({ q }).subscribe({
-      next: (data) => this.productos.set(data),
-      error: () => alert('Error cargando productos'),
+      next: (data) => {
+        this.productos.set(data);
+
+        if (mostrarToast) {
+          Swal.fire({
+            toast: true,
+            position: 'top-end',
+            icon: 'success',
+            title: 'Productos actualizados',
+            showConfirmButton: false,
+            timer: 1500,
+            background: '#14161c',
+            color: '#fff',
+          });
+        }
+      },
+      error: (err) => {
+        this.cargando.set(false);
+
+        if (err.status === 401) {
+          Swal.fire({
+            icon: 'warning',
+            title: 'Sesión vencida',
+            text: 'Cerrá sesión e ingresá nuevamente.',
+            confirmButtonColor: '#ffd60a',
+            background: '#14161c',
+            color: '#fff',
+          });
+          return;
+        }
+
+        Swal.fire({
+          icon: 'error',
+          title: 'No se cargaron los productos',
+          text: `Tocá recargar o revisá la conexión. Código: ${err.status}`,
+          confirmButtonColor: '#d33',
+          background: '#14161c',
+          color: '#fff',
+        });
+      },
       complete: () => this.cargando.set(false),
     });
   }
