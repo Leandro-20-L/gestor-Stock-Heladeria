@@ -28,22 +28,31 @@ export class StatsService {
     return `This action removes a #${id} stat`;
   }
 
+  private getRangoDiaComercial(fecha: string) {
+    const inicio = new Date(`${fecha}T04:00:00.000Z`);
+
+    const fin = new Date(inicio);
+    fin.setUTCDate(fin.getUTCDate() + 1);
+    fin.setUTCMilliseconds(fin.getUTCMilliseconds() - 1);
+
+    return { inicio, fin };
+  }
+
   async resumen(params: ResumenParams) {
     const match: VentaMatch = {};
 
     // Rango por createdAt si viene
     if (params.from || params.to) {
       match.createdAt = {};
+
       if (params.from) {
-        match.createdAt.$gte = new Date(params.from + 'T03:00:00.000Z');
+        const { inicio } = this.getRangoDiaComercial(params.from);
+        match.createdAt.$gte = inicio;
       }
 
       if (params.to) {
-        const hasta = new Date(params.to + 'T03:00:00.000Z');
-        hasta.setUTCDate(hasta.getUTCDate() + 1);
-        hasta.setUTCMilliseconds(hasta.getUTCMilliseconds() - 1);
-
-        match.createdAt.$lte = hasta;
+        const { fin } = this.getRangoDiaComercial(params.to);
+        match.createdAt.$lte = fin;
       }
     }
 
@@ -92,7 +101,11 @@ export class StatsService {
       {
         $group: {
           _id: {
-            $dateToString: { format: '%Y-%m-%d', date: '$createdAt' },
+            $dateToString: {
+              format: '%Y-%m-%d',
+              date: '$createdAt',
+              timezone: 'America/Argentina/Buenos_Aires',
+            },
           },
           total: { $sum: '$total' },
           cantidad: { $sum: 1 },

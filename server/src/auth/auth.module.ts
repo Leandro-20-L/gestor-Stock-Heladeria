@@ -15,28 +15,16 @@ import { PassportModule } from '@nestjs/passport';
     JwtModule.registerAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
-      useFactory: (config: ConfigService) => {
-        return {
-          secret: config.get('JWT_SECRET'), // <--- LEE DEL .ENV AQUÍ
-          signOptions: { expiresIn: '1d' },
-        };
-      },
-    }),
-    MongooseModule.forFeature([{ name: User.name, schema: UserSchema }]),
-    JwtModule.registerAsync({
-      inject: [ConfigService],
       useFactory: (config: ConfigService) => ({
         secret: config.getOrThrow('JWT_SECRET'),
-        signOptions: { expiresIn: '1d' },
+        signOptions: { expiresIn: '30d' },
       }),
     }),
+
+    MongooseModule.forFeature([{ name: User.name, schema: UserSchema }]),
   ],
   controllers: [AuthController],
   providers: [AuthService, JwtStrategy],
-  exports: [
-    JwtStrategy, // <--- Exportar para que otros módulos lo usen
-    PassportModule, // <--- Exportar para que los Guards funcionen fuera
-    AuthService,
-  ],
+  exports: [JwtStrategy, PassportModule, AuthService],
 })
 export class AuthModule {}
