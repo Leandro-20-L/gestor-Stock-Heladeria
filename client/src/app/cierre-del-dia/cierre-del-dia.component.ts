@@ -14,7 +14,7 @@ type Medio = 'efectivo' | 'transferencia' | 'point';
   styleUrl: './cierre-del-dia.component.scss',
 })
 export class CierreDelDiaComponent {
-  fecha = new Date().toISOString().slice(0, 10);
+  fecha = this.fechaLocalArgentina();
 
   guardando = false;
   cargandoTotal = false;
@@ -33,6 +33,15 @@ export class CierreDelDiaComponent {
 
   ngOnInit() {
     this.cargarTotalDelDia();
+  }
+
+  private fechaLocalArgentina() {
+    return new Intl.DateTimeFormat('en-CA', {
+      timeZone: 'America/Argentina/Buenos_Aires',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+    }).format(new Date());
   }
 
   get diferenciaEfectivo() {
