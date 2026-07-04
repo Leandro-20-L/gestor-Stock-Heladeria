@@ -117,18 +117,29 @@ export class VentasService {
           ? p.precioPoint
           : (p.precioVenta ?? 0);
 
+      const costoUnitario = p.costo ?? 0;
+
       const subtotal = precio * cantidad;
+
+      const gananciaSnapshot = (precio - costoUnitario) * cantidad;
 
       return {
         productoId: p._id,
         nombreSnapshot: p.nombre,
         precioUnitarioSnapshot: precio,
+        costoUnitarioSnapshot: costoUnitario,
         cantidad,
         subtotal,
+        gananciaSnapshot,
       };
     });
 
     const total = itemsSnapshot.reduce((acc, it) => acc + it.subtotal, 0);
+
+    const gananciaTotal = itemsSnapshot.reduce(
+      (acc, it) => acc + it.gananciaSnapshot,
+      0,
+    );
 
     for (const [idStock, cantidad] of descuentosStock.entries()) {
       await this.productoModel
@@ -142,6 +153,7 @@ export class VentasService {
     return this.ventaModel.create({
       items: itemsSnapshot,
       total,
+      gananciaTotal,
       medioPago: dto.medioPago,
       estado: 'confirmada',
     });
@@ -161,19 +173,84 @@ export class VentasService {
 
   async anular(id: string) {
     const venta = await this.ventaModel.findById(id).exec();
-    if (!venta) throw new NotFoundException('Venta no encontrada');
+
+    if (!venta) {
+      throw new NotFoundException('Venta no encontrada');
+    }
 
     if (venta.estado === 'anulada') {
-      throw new BadRequestException('La venta ya está anulada');
+      throw new BadRequestException('La venta ya estÃ¡ anulada');
+    }
+
+    const idsProductosVendidos = venta.items.map(
+      (it) => new Types.ObjectId(it.productoId),
+    );
+
+    const productosVendidos = await this.productoModel
+      .find({ _id: { $in: idsProductosVendidos } })
+      .exec();
+
+    const mapProductos = new Map<string, ProductoDocument>();
+
+    for (const p of productosVendidos) {
+      mapProductos.set(p._id.toString(), p);
+    }
+
+    const reposicionesStock = new Map<string, number>();
+
+    for (const item of venta.items) {
+      const producto = mapProductos.get(item.productoId.toString());
+
+      if (!producto) {
+        throw new NotFoundException(
+          `Producto no encontrado para reponer stock: ${item.productoId}`,
+        );
+      }
+
+      const cantidadVendida = Number(item.cantidad);
+
+      if (producto.descuentaStock?.length) {
+        for (const d of producto.descuentaStock) {
+          const idStock = d.productoId.toString();
+          const cantidadAReponer = Number(d.cantidad) * cantidadVendida;
+
+          reposicionesStock.set(
+            idStock,
+            (reposicionesStock.get(idStock) ?? 0) + cantidadAReponer,
+          );
+        }
+      } else {
+        const idStock = producto._id.toString();
+
+        reposicionesStock.set(
+          idStock,
+          (reposicionesStock.get(idStock) ?? 0) + cantidadVendida,
+        );
+      }
+    }
+
+    for (const [idStock, cantidad] of reposicionesStock.entries()) {
+      await this.productoModel
+        .updateOne(
+          { _id: new Types.ObjectId(idStock) },
+          { $inc: { stockActual: cantidad } },
+        )
+        .exec();
     }
 
     venta.estado = 'anulada';
     await venta.save();
 
     return {
-      message: 'Venta anulada',
+      message: 'Venta anulada y stock repuesto',
       id: venta.id,
       estado: venta.estado,
+      reposiciones: Array.from(reposicionesStock.entries()).map(
+        ([productoId, cantidad]) => ({
+          productoId,
+          cantidad,
+        }),
+      ),
     };
   }
 

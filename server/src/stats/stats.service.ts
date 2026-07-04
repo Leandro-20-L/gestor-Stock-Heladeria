@@ -15,6 +15,7 @@ type TotalesAggRow = {
   _id: 'confirmada' | 'anulada';
   total: number;
   cantidad: number;
+  gananciaTotal: number;
 };
 
 @Injectable()
@@ -64,17 +65,20 @@ export class StatsService {
           _id: '$estado',
           cantidad: { $sum: 1 },
           total: { $sum: '$total' },
+          gananciaTotal: { $sum: { $ifNull: ['$gananciaTotal', 0] } },
         },
       },
     ]);
 
     let totalFacturado = 0;
+    let gananciaTotal = 0;
     let cantidadConfirmadas = 0;
     let cantidadAnuladas = 0;
 
     for (const row of totalesAgg) {
       if (row._id === 'confirmada') {
         totalFacturado = row.total ?? 0;
+        gananciaTotal = row.gananciaTotal ?? 0;
         cantidadConfirmadas = row.cantidad ?? 0;
       } else if (row._id === 'anulada') {
         cantidadAnuladas = row.cantidad ?? 0;
@@ -134,6 +138,7 @@ export class StatsService {
     return {
       rango: { from: params.from ?? null, to: params.to ?? null },
       totalFacturado,
+      gananciaTotal,
       cantidadConfirmadas,
       cantidadAnuladas,
       porMedioPago,

@@ -21,6 +21,12 @@ export class VentaItem {
 
   @Prop({ required: true, min: 0 })
   subtotal: number;
+
+  @Prop({ required: true, min: 0, default: 0 })
+  costoUnitarioSnapshot: number;
+
+  @Prop({ required: true, default: 0 })
+  gananciaSnapshot: number;
 }
 export const VentaItemSchema = SchemaFactory.createForClass(VentaItem);
 
@@ -41,6 +47,9 @@ export class Venta {
     default: 'confirmada',
   })
   estado: 'confirmada' | 'anulada';
+
+  @Prop({ required: true, default: 0 })
+  gananciaTotal: number;
 }
 
 export const VentaSchema = SchemaFactory.createForClass(Venta);
