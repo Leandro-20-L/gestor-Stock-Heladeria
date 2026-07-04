@@ -5,6 +5,7 @@ import { environment } from '../../environments/environment';
 export type StatsResumen = {
   rango: { from: string | null; to: string | null };
   totalFacturado: number;
+  gananciaTotal: number;
   cantidadConfirmadas: number;
   cantidadAnuladas: number;
   porMedioPago: {

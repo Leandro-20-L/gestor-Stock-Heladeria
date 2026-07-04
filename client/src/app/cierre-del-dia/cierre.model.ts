@@ -25,6 +25,8 @@ export interface Cierre {
   totalTransferenciaSistema: number;
   totalPointSistema: number;
 
+  gananciaTotal: number;
+
   efectivoContado: number;
   diferenciaEfectivo: number;
 }

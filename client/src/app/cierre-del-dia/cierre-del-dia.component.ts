@@ -23,6 +23,7 @@ export class CierreDelDiaComponent {
   totalTransferenciaSistema = 0;
   totalPointSistema = 0;
   totalSistema = 0;
+  gananciaTotal = 0;
 
   efectivoContado: number | null = null;
 
@@ -72,6 +73,8 @@ export class CierreDelDiaComponent {
             this.totalEfectivoSistema +
             this.totalTransferenciaSistema +
             this.totalPointSistema;
+
+          this.gananciaTotal = res.gananciaTotal ?? 0;
 
           this.cargandoTotal = false;
         },
@@ -138,6 +141,7 @@ export class CierreDelDiaComponent {
           <p>Transferencia sistema: <b>$${this.totalTransferenciaSistema}</b></p>
           <p>Point sistema: <b>$${this.totalPointSistema}</b></p>
           <p>Total sistema: <b>$${this.totalSistema}</b></p>
+          <p>Ganancia estimada: <b>$${this.gananciaTotal}</b></p>
         </div>
       `,
       icon: 'question',
@@ -172,6 +176,7 @@ export class CierreDelDiaComponent {
           totalEfectivoSistema: this.totalEfectivoSistema,
           totalTransferenciaSistema: this.totalTransferenciaSistema,
           totalPointSistema: this.totalPointSistema,
+          gananciaTotal: this.gananciaTotal,
 
           efectivoContado,
           diferenciaEfectivo,

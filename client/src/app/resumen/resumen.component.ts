@@ -47,7 +47,7 @@ export class ResumenComponent {
   cargar() {
     this.cargando.set(true);
     this.stats.getResumen({ from: this.from, to: this.to }).subscribe({
-      next: (res: any) => {
+      next: (res: StatsResumen) => {
         this.data.set(res);
         this.cargando.set(false);
         this.renderCharts(res);
