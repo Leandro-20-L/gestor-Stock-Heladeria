@@ -96,7 +96,7 @@ export class StatsService {
         },
       },
       { $project: { _id: 0, medio: '$_id', total: 1, cantidad: 1 } },
-      { $sort: { total: -1 } },
+      { $sort: { cantidad: -1 } },
     ]);
 
     // 3) Por día (solo confirmadas)
