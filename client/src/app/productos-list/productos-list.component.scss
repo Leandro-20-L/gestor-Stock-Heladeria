@@ -550,3 +550,86 @@ select option {
     }
   }
 }
+
+.category-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 14px;
+  overflow-x: auto;
+  padding-bottom: 2px;
+
+  button {
+    white-space: nowrap;
+    padding: 10px 14px;
+    border-radius: 14px;
+    border: 1px solid rgba(255, 214, 10, 0.25);
+    background: rgba(255, 214, 10, 0.06);
+    color: #fff;
+    font-weight: 900;
+  }
+
+  button.active {
+    background: linear-gradient(180deg, #ffd60a, #ffb703);
+    color: #151515;
+  }
+}
+
+@media (max-width: 900px) {
+  .filters {
+    grid-template-columns: 1fr 1fr;
+
+    select {
+      display: none;
+    }
+  }
+
+  .product-card {
+    padding: 12px;
+    border-radius: 16px;
+  }
+
+  .card-head h3 {
+    font-size: 18px;
+  }
+
+  .categoria {
+    font-size: 11px;
+    margin-top: 3px;
+  }
+
+  .card-info {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 6px;
+    margin-top: 10px;
+  }
+
+  .card-info div {
+    display: grid;
+    gap: 4px;
+    padding: 8px;
+  }
+
+  .card-info span {
+    font-size: 10px;
+  }
+
+  .card-info b {
+    font-size: 13px;
+  }
+
+  .mobile-actions {
+    margin-top: 10px;
+
+    a,
+    button {
+      min-height: 38px;
+      font-size: 13px;
+    }
+  }
+
+  .alert-stock {
+    margin-top: 8px;
+    padding: 6px 9px;
+    font-size: 11px;
+  }
+}

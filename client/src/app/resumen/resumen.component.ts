@@ -108,18 +108,34 @@ export class ResumenComponent {
 
     // 3) Top productos (bar)
     const labelsTop = res.topProductos.map((x) => x.nombre);
-    const valuesTop = res.topProductos.map((x) => x.total);
+    const valuesTop = res.topProductos.map((x) => x.cantidad);
 
     this.chartTop = new Chart('chartTop' as any, {
       type: 'bar',
       data: {
         labels: labelsTop,
-        datasets: [{ label: 'Top productos (total)', data: valuesTop }],
+        datasets: [{ label: 'Top productos (unidades)', data: valuesTop }],
       },
       options: {
+        indexAxis: 'y',
         responsive: true,
-        plugins: { legend: { display: true } },
-        scales: { x: { ticks: { autoSkip: false } } },
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+        },
+        scales: {
+          x: {
+            beginAtZero: true,
+          },
+          y: {
+            ticks: {
+              autoSkip: false,
+              font: {
+                size: 10,
+              },
+            },
+          },
+        },
       },
     });
   }

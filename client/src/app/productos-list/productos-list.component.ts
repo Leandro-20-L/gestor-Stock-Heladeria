@@ -41,9 +41,10 @@ export class ProductosListComponent {
       | Categoria
       | undefined;
     const activos = this.verInactivos.value ? false : true;
+    const stockBajo = this.stockBajo.value ? true : undefined;
 
     this.productosService
-      .getAll({ q: q || undefined, categoria, activos })
+      .getAll({ q: q || undefined, categoria, activos, stockBajo })
       .subscribe({
         next: (data) => {
           this.productos.set(data);

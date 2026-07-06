@@ -1,12 +1,12 @@
 :host {
   display: block;
-  height: 100vh;
+  min-height: 100vh;
 }
 
 .layout {
-  height: 100vh;
+  min-height: 100vh;
   display: grid;
-  grid-template-columns: 270px 1fr;
+  grid-template-columns: 270px minmax(0, 1fr);
   background: #0f1115;
   color: #fff;
 }
@@ -113,7 +113,9 @@
 .content {
   padding: 22px;
   overflow: auto;
-
+  min-width: 0;
+  padding: 22px;
+  overflow: auto;
   background:
     radial-gradient(circle at top, rgba(255, 214, 10, 0.1), transparent 55%),
     radial-gradient(
@@ -217,6 +219,10 @@
   border: none;
 
   font-weight: 700;
+}
+
+.mobile-header {
+  display: none;
 }
 
 .account-menu a:hover,

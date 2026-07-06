@@ -8,12 +8,7 @@
 
 <div class="filters">
   <input [formControl]="q" placeholder="Buscar (q)..." />
-  <select [formControl]="categoria">
-    <option value="">Todas</option>
-    <option value="helado">Helado</option>
-    <option value="bebida">Bebida</option>
-    <option value="comida">Comida</option>
-  </select>
+
   <label>
     <input type="checkbox" [formControl]="verInactivos" />
     Ver inactivos
@@ -23,6 +18,39 @@
     StockBajo
   </label>
   <button (click)="cargar()">Buscar</button>
+</div>
+<div class="category-tabs">
+  <button
+    type="button"
+    (click)="categoria.setValue('')"
+    [class.active]="categoria.value === ''"
+  >
+    Todos
+  </button>
+
+  <button
+    type="button"
+    (click)="categoria.setValue('helado')"
+    [class.active]="categoria.value === 'helado'"
+  >
+    🍦 Helados
+  </button>
+
+  <button
+    type="button"
+    (click)="categoria.setValue('comida')"
+    [class.active]="categoria.value === 'comida'"
+  >
+    🍔 Comida
+  </button>
+
+  <button
+    type="button"
+    (click)="categoria.setValue('bebida')"
+    [class.active]="categoria.value === 'bebida'"
+  >
+    🥤 Bebidas
+  </button>
 </div>
 
 <table class="desktop-table" *ngIf="productos().length > 0; else empty">

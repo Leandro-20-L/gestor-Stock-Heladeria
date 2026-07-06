@@ -1,6 +1,6 @@
 :host {
   display: block;
-  background: #f6f7f9;
+  //background: #f6f7f9;
   min-height: 100%;
 }
 
@@ -8,6 +8,9 @@
   padding: 20px;
   max-width: 1400px;
   margin: 0 auto;
+  background:
+    radial-gradient(circle at top, rgba(255, 214, 10, 0.08), transparent 45%),
+    #0f1115;
 }
 
 /* ---------- HEADER ---------- */
@@ -23,13 +26,13 @@
     margin: 0;
     font-size: 26px;
     font-weight: 800;
-    color: #111;
+    color: white;
   }
 
   .sub {
     margin-top: 4px;
     font-size: 13px;
-    color: #666;
+    color: #9ca3af;
   }
 }
 
@@ -51,12 +54,12 @@
   input {
     padding: 10px 12px;
     border-radius: 12px;
-    border: 1px solid #ddd;
-    background: #fff;
+    border: 1px solid rgba(255, 214, 10, 0.2);
+    background: #22252d;
     outline: none;
     font-size: 14px;
     min-width: 140px;
-
+    color: white;
     &:focus {
       border-color: #111;
     }
@@ -66,16 +69,16 @@
     padding: 10px 16px;
     border-radius: 14px;
     border: none;
-    background: #111;
-    color: #fff;
-    font-weight: 600;
+    background: linear-gradient(180deg, #ffd60a, #ffb703);
+    color: #111;
+    font-weight: 900;
     cursor: pointer;
     transition:
       background 0.2s,
       transform 0.1s;
 
     &:hover:not(:disabled) {
-      background: #000;
+      background: #fff;
       transform: translateY(-1px);
     }
 
@@ -101,7 +104,11 @@
   margin-bottom: 20px;
 
   .card {
-    background: #fff;
+    background: #171a21;
+    border: 1px solid rgba(255, 214, 10, 0.15);
+    color: white;
+    border-radius: 18px;
+    box-shadow: 0 12px 25px rgba(0, 0, 0, 0.35);
     border-radius: 18px;
     padding: 18px;
     border: 1px solid #eee;
@@ -119,7 +126,7 @@
       margin-top: 8px;
       font-size: 28px;
       font-weight: 900;
-      color: #111;
+      color: #fff;
     }
 
     .s {
@@ -137,10 +144,12 @@
   gap: 16px;
 
   .panel {
-    background: #fff;
-    border-radius: 18px;
+    background: #171a21;
+    border: 1px solid rgba(255, 214, 10, 0.15);
+    border-radius: 20px;
+
     padding: 16px;
-    border: 1px solid #eee;
+
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
   }
 
@@ -148,7 +157,7 @@
     font-size: 15px;
     font-weight: 800;
     margin-bottom: 12px;
-    color: #111;
+    color: #fff;
   }
 
   .full {
@@ -260,5 +269,36 @@
       min-height: 240px;
       max-height: 260px;
     }
+  }
+}
+
+.panel.full {
+  min-height: 420px;
+}
+
+.panel.full canvas {
+  min-height: 360px;
+}
+
+@media (max-width: 700px) {
+  .page {
+    overflow-x: hidden;
+  }
+
+  .grid {
+    width: 100%;
+  }
+
+  .panel {
+    width: 100%;
+    overflow: hidden;
+  }
+
+  .panel.full {
+    min-height: 520px;
+  }
+
+  .panel.full canvas {
+    min-height: 460px;
   }
 }

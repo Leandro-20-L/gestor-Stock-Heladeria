@@ -78,6 +78,26 @@ export class VentasFormComponent {
     // Si no, filtramos local (más rápido para el dueño)
   }
 
+  productosRapidos() {
+    return this.productos()
+      .filter((p) =>
+        [
+          'Kilo',
+          'Medio',
+          'Cuarto',
+          'PopCorn',
+          'Sánguche de Milanesa',
+          'Hamburguesas Super Completa con fritas',
+        ].includes(p.nombre),
+      )
+      .filter((p) => p.activo);
+  }
+
+  agregarMobile(p: Producto) {
+    if (window.innerWidth <= 900) {
+      this.agregar(p);
+    }
+  }
   precioProducto(p: Producto) {
     const medio = this.form.controls.medioPago.value;
 
