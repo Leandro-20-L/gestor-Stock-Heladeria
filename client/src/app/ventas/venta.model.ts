@@ -1,13 +1,28 @@
 export type MedioPago = 'efectivo' | 'transferencia' | 'point';
 
+export interface AgregadoVentaDto {
+  productoId: string;
+  cantidad: number;
+}
+
 export interface CreateVentaItemDto {
   productoId: string;
   cantidad: number;
+  recargoUnitario?: number;
+  insumosExcluidos?: string[];
+  agregados?: AgregadoVentaDto[];
+  notaModificadores?: string;
 }
 
 export interface CreateVentaDto {
   medioPago: MedioPago;
   items: CreateVentaItemDto[];
+}
+
+export interface VentaAgregado {
+  productoId: string;
+  nombreSnapshot: string;
+  cantidad: number;
 }
 
 export interface VentaItem {
@@ -16,6 +31,9 @@ export interface VentaItem {
   precioUnitarioSnapshot: number;
   cantidad: number;
   subtotal: number;
+  insumosExcluidos?: string[];
+  agregados?: VentaAgregado[];
+  notaModificadores?: string;
 }
 
 export interface Venta {

@@ -3,6 +3,7 @@
 <div class="sale-toolbar">
   <input
     type="text"
+    class="search-input"
     [formControl]="form.controls.search"
     placeholder="Buscar producto..."
     autofocus
@@ -100,13 +101,14 @@
       (click)="agregar(p)"
       [disabled]="!puedeAgregar(p)"
     >
-      {{ p.nombre }}
-      <small>${{ precioProducto(p) }}</small>
+      <span class="qp-name">{{ p.nombre }}</span>
+      <small class="qp-price">${{ precioProducto(p) }}</small>
     </button>
   </div>
 </section>
 
 <div class="layout">
+  <!-- PANEL DE PRODUCTOS -->
   <section class="panel">
     <h3 class="panel-title">Productos</h3>
 
@@ -123,7 +125,7 @@
           <div class="name">{{ p.nombre }}</div>
           <div class="meta">
             Stock: <b>{{ stockDisponible(p) }}</b> · Precio:
-            <b>${{ precioProducto(p) }}</b>
+            <b class="price-highlight">${{ precioProducto(p) }}</b>
           </div>
         </div>
 
@@ -131,7 +133,7 @@
           type="button"
           (click)="agregar(p); $event.stopPropagation()"
           [disabled]="!puedeAgregar(p)"
-          class="btn"
+          class="btn-add-prod"
         >
           Agregar
         </button>
@@ -139,6 +141,7 @@
     </div>
   </section>
 
+  <!-- PANEL DEL CARRITO -->
   <section class="panel carrito-panel">
     <h3>Carrito</h3>
 
@@ -148,31 +151,153 @@
 
     <div class="list" *ngIf="carrito().length > 0">
       <div class="row cart-row" *ngFor="let item of carrito()">
-        <div class="info">
-          <div class="name">{{ item.producto.nombre }}</div>
-          <div class="meta">
-            ${{ precioProducto(item.producto) }} · Subtotal:
-            <b>${{ precioProducto(item.producto) * item.cantidad }}</b>
+        <div class="cart-item-main">
+          <div class="info">
+            <div class="name">{{ item.producto.nombre }}</div>
+
+            <div class="mod-badge" *ngIf="resumenModificadores(item)">
+              {{ resumenModificadores(item) }}
+            </div>
+
+            <div class="meta">
+              ${{ precioUnitarioItem(item) }} · Subtotal:
+              <b class="price-highlight">${{ precioUnitarioItem(item) * item.cantidad }}</b>
+            </div>
+          </div>
+
+          <div class="qty">
+            <button
+              type="button"
+              class="btn-gear"
+              [class.has-mods]="resumenModificadores(item) || item.recargoUnitario > 0"
+              (click)="togglePersonalizar(item)"
+              title="Agregados o quitar ingredientes"
+            >
+              ⚙️
+            </button>
+            <button type="button" class="qty-btn" (click)="disminuir(item)">-</button>
+            <span class="qty-num">{{ item.cantidad }}</span>
+            <button type="button" class="qty-btn" (click)="aumentar(item)">+</button>
+            <button type="button" class="qty-btn danger" (click)="quitar(item)">✕</button>
           </div>
         </div>
 
-        <div class="qty">
-          <button type="button" (click)="disminuir(item)">-</button>
-          <span>{{ item.cantidad }}</span>
-          <button type="button" (click)="aumentar(item)">+</button>
-          <button type="button" (click)="quitar(item)" class="danger">x</button>
+        <!-- VENTANA MODAL FLOTANTE (Se abre al tocar ⚙️) -->
+        <div
+          class="modal-backdrop"
+          *ngIf="item.abierto"
+          (click)="togglePersonalizar(item)"
+        >
+          <div class="modal-card" (click)="$event.stopPropagation()">
+            <div class="modal-header">
+              <div>
+                <h4>{{ item.producto.nombre }}</h4>
+                <small>Personalizar pedido (Cant: {{ item.cantidad }})</small>
+              </div>
+              <button
+                type="button"
+                class="modal-close"
+                (click)="togglePersonalizar(item)"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div class="modal-body">
+              <!-- 1. Quitar ingredientes de la receta -->
+              <div class="modal-block" *ngIf="item.producto.descuentaStock?.length">
+                <label class="block-title">Ingredientes (tocá para quitar):</label>
+                <div class="recipe-chips">
+                  <button
+                    type="button"
+                    class="chip"
+                    *ngFor="let rec of item.producto.descuentaStock"
+                    [class.excluded]="item.insumosExcluidos.includes(rec.productoId)"
+                    (click)="toggleExcluirInsumo(item, rec.productoId)"
+                  >
+                    {{ item.insumosExcluidos.includes(rec.productoId) ? '❌ Sin ' : '✅ ' }}
+                    {{ nombreInsumo(rec.productoId) }}
+                  </button>
+                </div>
+              </div>
+
+              <!-- 2. Sumar agregados extra -->
+              <div class="modal-block">
+                <label class="block-title">Sumar agregado (Doble / Extra):</label>
+                <div class="extra-selector">
+                  <select
+                    [(ngModel)]="insumoExtraSeleccionado[item.uid]"
+                    [ngModelOptions]="{ standalone: true }"
+                  >
+                    <option value="">Elegir insumo extra...</option>
+                    <option *ngFor="let ins of insumosDisponibles()" [value]="ins._id">
+                      {{ ins.nombre }}
+                    </option>
+                  </select>
+                  <button
+                    type="button"
+                    class="btn-sumar-extra"
+                    (click)="agregarExtra(item)"
+                  >
+                    + Sumar
+                  </button>
+                </div>
+
+                <!-- Lista de extras cargados -->
+                <div class="extras-added-list" *ngIf="item.agregados.length > 0">
+                  <div class="extra-pill" *ngFor="let ext of item.agregados">
+                    <span><b>+{{ ext.cantidad }}</b> {{ ext.nombre }}</span>
+                    <button
+                      type="button"
+                      class="btn-minus-extra"
+                      (click)="quitarExtra(item, ext.insumoId)"
+                    >
+                      -1
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 3. Recargo extra en $ -->
+              <div class="modal-block recargo-block">
+                <label class="block-title">Recargo extra por unidad ($):</label>
+                <input
+                  type="number"
+                  min="0"
+                  [ngModel]="item.recargoUnitario"
+                  (ngModelChange)="actualizarRecargo(item, $event)"
+                  [ngModelOptions]="{ standalone: true }"
+                  placeholder="0"
+                />
+              </div>
+            </div>
+
+            <div class="modal-footer">
+              <div class="modal-subtotal">
+                Precio c/u: <b>${{ precioUnitarioItem(item) }}</b>
+              </div>
+              <button
+                type="button"
+                class="btn-modal-done"
+                (click)="togglePersonalizar(item)"
+              >
+                Listo
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </div>
 
     <div class="total">
-      Total: <b>${{ total() }}</b>
+      <span>Total</span>
+      <b>${{ total() }}</b>
     </div>
   </section>
 </div>
 
 <div class="mobile-checkout" *ngIf="carrito().length > 0">
-  <div>
+  <div class="checkout-total">
     <span>Total</span>
     <b>${{ total() }}</b>
   </div>

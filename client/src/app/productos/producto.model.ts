@@ -1,5 +1,6 @@
-export type Categoria = 'helado' | 'bebida' | 'comida';
-export type Unidad = 'kg' | 'unidad';
+export type TipoItem = 'producto' | 'insumo';
+export type Categoria = 'helado' | 'bebida' | 'comida' | 'descartable' | 'materia_prima';
+export type Unidad = 'kg' | 'unidad' | 'litro';
 
 export interface DescuentoStock {
   productoId: string;
@@ -9,6 +10,7 @@ export interface DescuentoStock {
 export interface Producto {
   _id: string;
   nombre: string;
+  tipo: TipoItem;
   categoria: Categoria;
   precioVenta?: number;
   precioPoint?: number;

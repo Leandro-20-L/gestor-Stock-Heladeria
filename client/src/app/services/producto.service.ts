@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { Categoria, Producto } from '../productos/producto.model';
+import { Categoria, Producto, TipoItem } from '../productos/producto.model';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { environment } from '../../environments/environment';
 
@@ -12,12 +12,14 @@ export class ProductoService {
   constructor(private http: HttpClient) {}
 
   getAll(opts?: {
+    tipo?: TipoItem;
     q?: string;
     categoria?: Categoria;
     activos?: boolean;
     stockBajo?: boolean;
   }) {
     let params = new HttpParams();
+    if (opts?.tipo) params = params.set('tipo', opts.tipo);
     if (opts?.q) params = params.set('q', opts.q);
     if (opts?.categoria) params = params.set('categoria', opts.categoria);
     if (opts?.activos === false) params = params.set('activos', 'false'); // mostrar todos

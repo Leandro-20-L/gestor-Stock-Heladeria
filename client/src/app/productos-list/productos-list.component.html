@@ -1,13 +1,32 @@
 <div class="header">
-  <h2>Productos</h2>
+  <h2>{{ tipo.value === 'insumo' ? 'Insumos' : 'Productos' }}</h2>
   <a routerLink="/app/productos/nuevo">+ Nuevo</a>
   <button type="button" class="refresh-btn" (click)="cargar(true)">
     <img src="refresh-ccw.svg" alt="" />
   </button>
 </div>
 
+<!-- Selector Principal: Productos vs Insumos -->
+<div class="category-tabs" style="margin-bottom: 12px;">
+  <button
+    type="button"
+    (click)="cambiarTipo('producto')"
+    [class.active]="tipo.value === 'producto'"
+  >
+    🍦 Productos de Venta
+  </button>
+
+  <button
+    type="button"
+    (click)="cambiarTipo('insumo')"
+    [class.active]="tipo.value === 'insumo'"
+  >
+    📦 Insumos y Descartables
+  </button>
+</div>
+
 <div class="filters">
-  <input [formControl]="q" placeholder="Buscar (q)..." />
+  <input [formControl]="q" placeholder="Buscar por nombre..." />
 
   <label>
     <input type="checkbox" [formControl]="verInactivos" />
@@ -15,11 +34,13 @@
   </label>
   <label>
     <input type="checkbox" [formControl]="stockBajo" />
-    StockBajo
+    Stock bajo
   </label>
   <button (click)="cargar()">Buscar</button>
 </div>
-<div class="category-tabs">
+
+<!-- Sub-pestañas de Categoría para PRODUCTOS -->
+<div class="category-tabs" *ngIf="tipo.value === 'producto'">
   <button
     type="button"
     (click)="categoria.setValue('')"
@@ -53,13 +74,40 @@
   </button>
 </div>
 
+<!-- Sub-pestañas de Categoría para INSUMOS -->
+<div class="category-tabs" *ngIf="tipo.value === 'insumo'">
+  <button
+    type="button"
+    (click)="categoria.setValue('')"
+    [class.active]="categoria.value === ''"
+  >
+    Todos
+  </button>
+
+  <button
+    type="button"
+    (click)="categoria.setValue('materia_prima')"
+    [class.active]="categoria.value === 'materia_prima'"
+  >
+    🥩 Materia Prima
+  </button>
+
+  <button
+    type="button"
+    (click)="categoria.setValue('descartable')"
+    [class.active]="categoria.value === 'descartable'"
+  >
+    🥡 Descartables
+  </button>
+</div>
+
 <table class="desktop-table" *ngIf="productos().length > 0; else empty">
   <thead>
     <tr>
       <th>Nombre</th>
       <th>Categoría</th>
       <th>Unidad</th>
-      <th>Precio</th>
+      <th>{{ tipo.value === 'insumo' ? 'Costo' : 'Precio' }}</th>
       <th>Stock</th>
       <th>Activo</th>
       <th></th>
@@ -76,7 +124,13 @@
 
       <td>{{ p.categoria }}</td>
       <td>{{ p.unidad }}</td>
-      <td>{{ p.precioVenta ?? "-" }}</td>
+      <td>
+        {{
+          tipo.value === 'insumo'
+            ? (p.costo ?? '-')
+            : (p.precioVenta ?? '-')
+        }}
+      </td>
       <td>{{ p.stockActual ?? "-" }}</td>
 
       <td>
@@ -123,8 +177,15 @@
       </div>
 
       <div>
-        <span>Precio</span>
-        <b>$ {{ p.precioVenta ?? "-" }}</b>
+        <span>{{ tipo.value === 'insumo' ? 'Costo' : 'Precio' }}</span>
+        <b>
+          $
+          {{
+            tipo.value === 'insumo'
+              ? (p.costo ?? '-')
+              : (p.precioVenta ?? '-')
+          }}
+        </b>
       </div>
 
       <div>
@@ -141,5 +202,7 @@
 </div>
 
 <ng-template #empty>
-  <p>No hay productos para mostrar.</p>
+  <p>
+    No hay {{ tipo.value === 'insumo' ? 'insumos' : 'productos' }} para mostrar.
+  </p>
 </ng-template>

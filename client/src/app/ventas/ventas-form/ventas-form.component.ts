@@ -2,25 +2,31 @@ import { Component, computed, inject, signal } from '@angular/core';
 import { Producto } from '../../productos/producto.model';
 import { CreateVentaDto, MedioPago } from '../venta.model';
 import { VentasService } from '../../services/ventas.service';
-import {
-  FormBuilder,
-  FormGroup,
-  ReactiveFormsModule,
-  Validators,
-} from '@angular/forms';
+import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { CommonModule } from '@angular/common';
-import { toSignal } from '@angular/core/rxjs-interop'; // <--- IMPORTANTE
+import { toSignal } from '@angular/core/rxjs-interop';
 import { debounceTime } from 'rxjs/operators';
 import Swal from 'sweetalert2';
 
-type CartItem = {
+export type CartAgregado = {
+  insumoId: string;
+  nombre: string;
+  cantidad: number;
+};
+
+export type CartItem = {
+  uid: string; // Permite tener en el mismo pedido 1 hamburguesa común y 1 doble sin papas
   producto: Producto;
   cantidad: number;
+  insumosExcluidos: string[]; // IDs de insumos quitados ("Sin papas")
+  agregados: CartAgregado[];  // Extras ("+1 Medallón")
+  recargoUnitario: number;    // $ extra por unidad si lleva agregados
+  abierto?: boolean;          // Muestra/oculta el panel de personalización en el carrito
 };
 
 @Component({
   selector: 'app-ventas-form',
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, FormsModule],
   templateUrl: './ventas-form.component.html',
   styleUrl: './ventas-form.component.scss',
 })
@@ -32,28 +38,81 @@ export class VentasFormComponent {
 
   categoriaActiva: 'helado' | 'comida' | 'bebida' = 'helado';
 
+  // Insumo seleccionado temporalmente en el desplegable de agregados
+  insumoExtraSeleccionado: Record<string, string> = {};
+
+  // Agregá esta señal arriba junto a tus otras señales (debajo de carrito = signal...):
+itemModalUid = signal<string | null>(null);
+insumoExtraSeleccionadoId = '';
+
+// Computed que obtiene el ítem que se está editando actualmente en el modal:
+itemEnModal = computed(() => {
+  const uid = this.itemModalUid();
+  if (!uid) return null;
+  return this.carrito().find((i) => i.uid === uid) ?? null;
+});
+
+abrirModalPersonalizar(item: CartItem) {
+  this.insumoExtraSeleccionadoId = '';
+  this.itemModalUid.set(item.uid);
+}
+
+cerrarModalPersonalizar() {
+  this.itemModalUid.set(null);
+}
+
+// Si el cliente pidió 2 o más iguales pero solo 1 lleva agregado/sin papas, la separa en otro renglón
+separarUnidadParaPersonalizar(item: CartItem) {
+  if (item.cantidad <= 1) return;
+
+  const nuevoUid = crypto.randomUUID
+    ? crypto.randomUUID()
+    : String(Date.now() + Math.random());
+
+  const nuevaUnidad: CartItem = {
+    uid: nuevoUid,
+    producto: item.producto,
+    cantidad: 1,
+    insumosExcluidos: [...item.insumosExcluidos],
+    agregados: item.agregados.map((a) => ({ ...a })),
+    recargoUnitario: item.recargoUnitario,
+  };
+
+  this.carrito.set([
+    ...this.carrito().map((i) =>
+      i.uid === item.uid ? { ...i, cantidad: i.cantidad - 1 } : i,
+    ),
+    nuevaUnidad,
+  ]);
+
+  this.itemModalUid.set(nuevoUid);
+}
+
   setCategoria(cat: 'helado' | 'comida' | 'bebida') {
     this.categoriaActiva = cat;
   }
 
-  // ReactiveForms (nonNullable para evitar nulls)
   form = this.fb.nonNullable.group({
     search: [''],
     medioPago: ['efectivo' as MedioPago, Validators.required],
   });
 
-  // 1. CREAMOS EL SIGNAL DEL BUSCADOR
   searchQuery = toSignal(
     this.form.controls.search.valueChanges.pipe(debounceTime(300)),
     { initialValue: '' },
   );
 
-  // lista filtrada según buscador
+  // Solo los insumos (para el selector de agregados y nombres de recetas)
+  insumosDisponibles = computed(() =>
+    this.productos().filter((p) => p.tipo === 'insumo' && p.activo),
+  );
+
+  // Solo productos de venta (oculta los insumos del mostrador)
   productosFiltrados = computed(() => {
     const q = (this.searchQuery() || '').trim().toLowerCase();
-    const list = this.productos();
+    const list = this.productos().filter((p) => p.tipo !== 'insumo');
 
-    if (!q) return list.slice(0, 30); // para no listar infinito
+    if (!q) return list.slice(0, 30);
     return list
       .filter((p) => (p.nombre ?? '').toLowerCase().includes(q))
       .slice(0, 50);
@@ -61,25 +120,18 @@ export class VentasFormComponent {
 
   total = computed(() =>
     this.carrito().reduce(
-      (acc, item) => acc + this.precioProducto(item.producto) * item.cantidad,
+      (acc, item) => acc + this.precioUnitarioItem(item) * item.cantidad,
       0,
     ),
   );
 
   constructor(private ventasService: VentasService) {
-    // Cargar productos al inicio
     this.refrescarProductos();
-
-    // Si querés que el buscador “pegue” al backend:
-    // this.form.controls.search.valueChanges.pipe(debounceTime(300)).subscribe(q => {
-    //   this.refrescarProductos(q);
-    // });
-
-    // Si no, filtramos local (más rápido para el dueño)
   }
 
   productosRapidos() {
     return this.productos()
+      .filter((p) => p.tipo !== 'insumo')
       .filter((p) =>
         [
           'Kilo',
@@ -98,15 +150,20 @@ export class VentasFormComponent {
       this.agregar(p);
     }
   }
+
   precioProducto(p: Producto) {
     const medio = this.form.controls.medioPago.value;
-
     if (medio === 'point' && p.precioPoint != null) {
       return p.precioPoint;
     }
-
     return p.precioVenta ?? 0;
   }
+
+  // Precio base + recargo por agregados (ej: doble carne)
+  precioUnitarioItem(item: CartItem) {
+    return this.precioProducto(item.producto) + (Number(item.recargoUnitario) || 0);
+  }
+
   refrescarProductos(q?: string, mostrarToast = false) {
     this.cargando.set(true);
 
@@ -129,7 +186,6 @@ export class VentasFormComponent {
       },
       error: (err) => {
         this.cargando.set(false);
-
         if (err.status === 401) {
           Swal.fire({
             icon: 'warning',
@@ -141,7 +197,6 @@ export class VentasFormComponent {
           });
           return;
         }
-
         Swal.fire({
           icon: 'error',
           title: 'No se cargaron los productos',
@@ -165,35 +220,133 @@ export class VentasFormComponent {
     if (!producto.activo) return;
 
     const cart = this.carrito();
-    const idx = cart.findIndex((i) => i.producto._id === producto._id);
+    const stock = this.stockDisponible(producto);
 
-    const stock = producto.stockActual ?? 0;
+    // Buscamos si ya hay uno igual SIN personalizaciones para agruparlo
+    const idx = cart.findIndex(
+      (i) =>
+        i.producto._id === producto._id &&
+        i.insumosExcluidos.length === 0 &&
+        i.agregados.length === 0 &&
+        i.recargoUnitario === 0,
+    );
 
-    // si ya está en carrito, incrementa (si hay stock)
     if (idx >= 0) {
       const actual = cart[idx].cantidad;
-      if (actual + 1 > stock) return; // no pasar stock
+      if (actual + 1 > stock) return;
       const copy = cart.slice();
       copy[idx] = { ...copy[idx], cantidad: actual + 1 };
       this.carrito.set(copy);
       return;
     }
 
-    // si no está, lo agrega con 1 (si hay stock)
     if (stock < 1) return;
 
-    this.carrito.set([...cart, { producto, cantidad: 1 }]);
+    this.carrito.set([
+      ...cart,
+      {
+        uid: crypto.randomUUID ? crypto.randomUUID() : String(Date.now() + Math.random()),
+        producto,
+        cantidad: 1,
+        insumosExcluidos: [],
+        agregados: [],
+        recargoUnitario: 0,
+        abierto: false,
+      },
+    ]);
+  }
+
+  // Separa una unidad en un renglón nuevo si querés personalizar solo 1 de las hamburguesas
+  togglePersonalizar(item: CartItem) {
+    this.carrito.set(
+      this.carrito().map((i) =>
+        i.uid === item.uid ? { ...i, abierto: !i.abierto } : i,
+      ),
+    );
+  }
+
+  nombreInsumo(insumoId: string): string {
+    const found = this.productos().find((p) => p._id === insumoId);
+    return found ? found.nombre : 'Insumo';
+  }
+
+  // Quitar / restaurar un ingrediente de la receta base (ej: "Sin papas")
+  toggleExcluirInsumo(item: CartItem, insumoId: string) {
+    const excluidos = item.insumosExcluidos.includes(insumoId)
+      ? item.insumosExcluidos.filter((id) => id !== insumoId)
+      : [...item.insumosExcluidos, insumoId];
+
+    this.carrito.set(
+      this.carrito().map((i) =>
+        i.uid === item.uid ? { ...i, insumosExcluidos: excluidos } : i,
+      ),
+    );
+  }
+
+  // Sumar un insumo extra (ej: +1 Medallón para doble)
+  agregarExtra(item: CartItem) {
+    const insumoId = this.insumoExtraSeleccionadoId;
+    if (!insumoId) return;
+
+    const insumo = this.productos().find((p) => p._id === insumoId);
+    if (!insumo) return;
+
+    const existe = item.agregados.find((a) => a.insumoId === insumoId);
+    const nuevosAgregados = existe
+      ? item.agregados.map((a) =>
+          a.insumoId === insumoId ? { ...a, cantidad: a.cantidad + 1 } : a,
+        )
+      : [...item.agregados, { insumoId, nombre: insumo.nombre, cantidad: 1 }];
+
+    this.carrito.set(
+      this.carrito().map((i) =>
+        i.uid === item.uid ? { ...i, agregados: nuevosAgregados } : i,
+      ),
+    );
+  }
+
+  quitarExtra(item: CartItem, insumoId: string) {
+    const nuevosAgregados = item.agregados
+      .map((a) =>
+        a.insumoId === insumoId ? { ...a, cantidad: a.cantidad - 1 } : a,
+      )
+      .filter((a) => a.cantidad > 0);
+
+    this.carrito.set(
+      this.carrito().map((i) =>
+        i.uid === item.uid ? { ...i, agregados: nuevosAgregados } : i,
+      ),
+    );
+  }
+
+  actualizarRecargo(item: CartItem, valor: number) {
+    this.carrito.set(
+      this.carrito().map((i) =>
+        i.uid === item.uid ? { ...i, recargoUnitario: Math.max(0, Number(valor) || 0) } : i,
+      ),
+    );
+  }
+
+  resumenModificadores(item: CartItem): string {
+    const partes: string[] = [];
+    if (item.insumosExcluidos.length > 0) {
+      const nombres = item.insumosExcluidos.map((id) => this.nombreInsumo(id)).join(', ');
+      partes.push(`Sin: ${nombres}`);
+    }
+    if (item.agregados.length > 0) {
+      const extras = item.agregados.map((a) => `+${a.cantidad} ${a.nombre}`).join(', ');
+      partes.push(`Extra: ${extras}`);
+    }
+    return partes.join(' | ');
   }
 
   aumentar(item: CartItem) {
-    const stock = item.producto.stockActual ?? 0;
+    const stock = this.stockDisponible(item.producto);
     if (item.cantidad + 1 > stock) return;
 
     this.carrito.set(
       this.carrito().map((i) =>
-        i.producto._id === item.producto._id
-          ? { ...i, cantidad: i.cantidad + 1 }
-          : i,
+        i.uid === item.uid ? { ...i, cantidad: i.cantidad + 1 } : i,
       ),
     );
   }
@@ -206,17 +359,13 @@ export class VentasFormComponent {
 
     this.carrito.set(
       this.carrito().map((i) =>
-        i.producto._id === item.producto._id
-          ? { ...i, cantidad: i.cantidad - 1 }
-          : i,
+        i.uid === item.uid ? { ...i, cantidad: i.cantidad - 1 } : i,
       ),
     );
   }
 
   quitar(item: CartItem) {
-    this.carrito.set(
-      this.carrito().filter((i) => i.producto._id !== item.producto._id),
-    );
+    this.carrito.set(this.carrito().filter((i) => i.uid !== item.uid));
   }
 
   limpiar() {
@@ -227,12 +376,16 @@ export class VentasFormComponent {
   confirmar() {
     const detalleHtml = this.carrito()
       .map((item) => {
-        const precio = this.precioProducto(item.producto);
+        const precio = this.precioUnitarioItem(item);
         const subtotal = precio * item.cantidad;
+        const nota = this.resumenModificadores(item);
 
         return `
       <div style="display:flex; justify-content:space-between; gap:12px; margin:6px 0;">
-        <span>${item.producto.nombre} x${item.cantidad}</span>
+        <div>
+          <span>${item.producto.nombre} x${item.cantidad}</span>
+          ${nota ? `<div style="font-size:0.8em; color:#ffd60a;">(${nota})</div>` : ''}
+        </div>
         <b>$${subtotal}</b>
       </div>
     `;
@@ -250,6 +403,13 @@ export class VentasFormComponent {
       items: this.carrito().map((i) => ({
         productoId: i.producto._id,
         cantidad: i.cantidad,
+        recargoUnitario: i.recargoUnitario || 0,
+        insumosExcluidos: i.insumosExcluidos,
+        agregados: i.agregados.map((a) => ({
+          productoId: a.insumoId,
+          cantidad: a.cantidad,
+        })),
+        notaModificadores: this.resumenModificadores(i),
       })),
     };
 
@@ -259,14 +419,11 @@ export class VentasFormComponent {
     <div style="text-align:left; margin-bottom:12px;">
       ${detalleHtml}
     </div>
-
     <hr style="border-color: rgba(255,255,255,.15);">
-
     <div style="display:flex; justify-content:space-between; margin-top:12px;">
       <span>Total a cobrar:</span>
       <b style="font-size: 1.2em; color: #ffd60a">$${this.total()}</b>
     </div>
-
     <br>
     Medio de pago: <b>${dto.medioPago.toUpperCase()}</b>
   `,
@@ -285,11 +442,9 @@ export class VentasFormComponent {
     });
   }
 
-  // Método auxiliar para mantener limpio el código
   private enviarVenta(dto: CreateVentaDto) {
     this.cargando.set(true);
 
-    // Feedback de carga (bloquea la pantalla para no doble click)
     Swal.fire({
       title: 'Procesando...',
       text: 'Registrando venta',
@@ -301,12 +456,11 @@ export class VentasFormComponent {
 
     this.ventasService.crearVenta(dto).subscribe({
       next: () => {
-        // ÉXITO
         Swal.fire({
           icon: 'success',
           title: '¡Venta Registrada!',
           text: 'El stock se ha actualizado.',
-          timer: 2000, // Se cierra solo en 2 segs
+          timer: 2000,
           showConfirmButton: false,
           background: '#14161c',
           color: '#fff',
@@ -316,7 +470,6 @@ export class VentasFormComponent {
         this.refrescarProductos();
       },
       error: (err) => {
-        // ERROR
         const msg = err?.error?.message
           ? Array.isArray(err.error.message)
             ? err.error.message.join(' | ')
@@ -336,18 +489,29 @@ export class VentasFormComponent {
     });
   }
 
-  // helpers UI
-  stockDisponible(p: Producto) {
+  // Si el producto descuenta insumos, calcula cuántos se pueden armar según el stock de insumos
+  stockDisponible(p: Producto): number {
+    if (p.descuentaStock && p.descuentaStock.length > 0) {
+      const todos = this.productos();
+      const posibles = p.descuentaStock.map((receta) => {
+        const insumo = todos.find((item) => item._id === receta.productoId);
+        if (!insumo) return 999;
+        return Math.floor((insumo.stockActual ?? 0) / receta.cantidad);
+      });
+      return Math.min(...posibles);
+    }
     return p.stockActual ?? 0;
   }
 
   puedeAgregar(p: Producto) {
-    const stock = p.stockActual ?? 0;
+    const stock = this.stockDisponible(p);
     if (!p.activo) return false;
     if (stock <= 0) return false;
 
-    const item = this.carrito().find((i) => i.producto._id === p._id);
-    if (!item) return true;
-    return item.cantidad < stock;
+    const totalEnCarrito = this.carrito()
+      .filter((i) => i.producto._id === p._id)
+      .reduce((acc, i) => acc + i.cantidad, 0);
+
+    return totalEnCarrito < stock;
   }
 }

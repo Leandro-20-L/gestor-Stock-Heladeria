@@ -8,7 +8,7 @@ import {
 } from '@angular/forms';
 import { ProductoService } from '../services/producto.service';
 import { ActivatedRoute, Router } from '@angular/router';
-import { Categoria, Unidad } from '../productos/producto.model';
+import { Categoria, Producto, TipoItem, Unidad } from '../productos/producto.model';
 import { CommonModule } from '@angular/common';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 
@@ -23,7 +23,7 @@ export class ProductosFormComponent {
   id: string | null = null;
   form!: FormGroup;
 
-  productosInsumos: any[] = [];
+  productosInsumos: Producto[] = [];
 
   private snackBar = inject(MatSnackBar);
 
@@ -39,19 +39,37 @@ export class ProductosFormComponent {
   ngOnInit() {
     this.form = this.fb.group({
       nombre: ['', [Validators.required, Validators.minLength(2)]],
+      tipo: ['producto' as TipoItem, [Validators.required]],
       categoria: ['helado' as Categoria, [Validators.required]],
       unidad: ['kg' as Unidad, [Validators.required]],
-      precioVenta: [, [Validators.required, Validators.min(0)]],
+      precioVenta: [0, [Validators.required, Validators.min(0)]],
       precioPoint: [, [Validators.min(0)]],
       costo: [, [Validators.min(0)]],
-      stockActual: [, [Validators.required, Validators.min(0)]],
-      stockMinimo: [, [Validators.required, Validators.min(0)]],
+      stockActual: [0, [Validators.required, Validators.min(0)]],
+      stockMinimo: [0, [Validators.required, Validators.min(0)]],
       descuentaStock: this.fb.array([]),
     });
 
-    this.productosService.getAll({ activos: false }).subscribe({
-      next: (productos) => {
-        this.productosInsumos = productos;
+    // Ajustar validaciones automáticamente según sea 'producto' o 'insumo'
+    this.form.get('tipo')?.valueChanges.subscribe((tipo: TipoItem) => {
+      const precioCtrl = this.form.get('precioVenta');
+      if (tipo === 'insumo') {
+        this.form.get('categoria')?.setValue('materia_prima');
+        precioCtrl?.clearValidators();
+        precioCtrl?.setValidators([Validators.min(0)]);
+        precioCtrl?.setValue(0);
+        this.descuentaStock.clear(); // Un insumo no descuenta otros insumos
+      } else {
+        this.form.get('categoria')?.setValue('helado');
+        precioCtrl?.setValidators([Validators.required, Validators.min(0)]);
+      }
+      precioCtrl?.updateValueAndValidity();
+    });
+
+    // Cargamos solo los INSUMOS activos para el desplegable de "Descuenta stock"
+    this.productosService.getAll({ tipo: 'insumo', activos: true } as any).subscribe({
+      next: (insumos) => {
+        this.productosInsumos = insumos;
       },
     });
 
@@ -63,9 +81,10 @@ export class ProductosFormComponent {
         next: (p) => {
           this.form.patchValue({
             nombre: p.nombre,
+            tipo: p.tipo ?? 'producto',
             categoria: p.categoria,
             unidad: p.unidad,
-            precioVenta: p.precioVenta,
+            precioVenta: p.precioVenta ?? 0,
             precioPoint: p.precioPoint,
             costo: p.costo,
             stockActual: p.stockActual,
@@ -80,15 +99,19 @@ export class ProductosFormComponent {
                 productoId: [d.productoId, Validators.required],
                 cantidad: [
                   d.cantidad,
-                  [Validators.required, Validators.min(1)],
+                  [Validators.required, Validators.min(0.001)],
                 ],
               }),
             );
           }
         },
-        error: () => alert('No se pudo cargar el producto'),
+        error: () => alert('No se pudo cargar el registro'),
       });
     }
+  }
+
+  get esInsumo(): boolean {
+    return this.form?.get('tipo')?.value === 'insumo';
   }
 
   get descuentaStock(): FormArray {
@@ -99,7 +122,7 @@ export class ProductosFormComponent {
     this.descuentaStock.push(
       this.fb.group({
         productoId: ['', Validators.required],
-        cantidad: [1, [Validators.required, Validators.min(1)]],
+        cantidad: [1, [Validators.required, Validators.min(0.001)]],
       }),
     );
   }
@@ -109,31 +132,36 @@ export class ProductosFormComponent {
   }
 
   guardar() {
+    if (this.form.invalid) {
+      this.form.markAllAsTouched();
+      return;
+    }
+
     const data = this.form.getRawValue();
 
     if (this.id) {
       this.productosService.update(this.id, data).subscribe({
         next: () => {
-          (this.router.navigateByUrl('/app/productos'),
-            this.snackBar.open(`¡Productos Actualizado! `, 'Cerrar', {
-              duration: 4000,
-              horizontalPosition: 'center',
-              verticalPosition: 'bottom',
-              panelClass: ['custom-snackbar'], // Opcional para estilos CSS
-            }));
+          this.router.navigateByUrl('/app/productos');
+          this.snackBar.open(`¡Registro actualizado!`, 'Cerrar', {
+            duration: 4000,
+            horizontalPosition: 'center',
+            verticalPosition: 'bottom',
+            panelClass: ['custom-snackbar'],
+          });
         },
         error: () => alert('No se pudo actualizar'),
       });
     } else {
       this.productosService.create(data as any).subscribe({
         next: () => {
-          (this.router.navigateByUrl('/app/productos'),
-            this.snackBar.open(`¡Producto Creado! `, 'Cerrar', {
-              duration: 4000,
-              horizontalPosition: 'center',
-              verticalPosition: 'bottom',
-              panelClass: ['custom-snackbar'], // Opcional para estilos CSS
-            }));
+          this.router.navigateByUrl('/app/productos');
+          this.snackBar.open(`¡Registro creado!`, 'Cerrar', {
+            duration: 4000,
+            horizontalPosition: 'center',
+            verticalPosition: 'bottom',
+            panelClass: ['custom-snackbar'],
+          });
         },
         error: () => alert('No se pudo crear'),
       });
