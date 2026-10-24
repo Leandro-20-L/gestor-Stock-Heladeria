@@ -4,7 +4,6 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { CreateVentaDto } from './dto/create-venta.dto';
-
 import { InjectModel } from '@nestjs/mongoose';
 import { Venta } from './entities/venta.entity';
 import {
@@ -21,12 +20,13 @@ export class VentasService {
     @InjectModel(Producto.name)
     private readonly productoModel: Model<ProductoDocument>,
   ) {}
+
   async create(dto: CreateVentaDto) {
     if (!dto.items?.length) {
       throw new BadRequestException('La venta debe tener items');
     }
 
-    const map = new Map<string, number>();
+    const idsProductosUnicos = new Set<string>();
 
     for (const it of dto.items) {
       const id = (it.productoId || '').trim();
@@ -39,10 +39,21 @@ export class VentasService {
         throw new BadRequestException(`La cantidad debe ser mayor a 0`);
       }
 
-      map.set(id, (map.get(id) ?? 0) + it.cantidad);
+      idsProductosUnicos.add(id);
+
+      // Validar IDs de agregados si existen
+      for (const ag of it.agregados ?? []) {
+        if (!isValidObjectId(ag.productoId)) {
+          throw new BadRequestException(
+            `ID de agregado inválido: ${ag.productoId}`,
+          );
+        }
+      }
     }
 
-    const ids = Array.from(map.keys()).map((id) => new Types.ObjectId(id));
+    const ids = Array.from(idsProductosUnicos).map(
+      (id) => new Types.ObjectId(id),
+    );
 
     const productos = await this.productoModel
       .find({ _id: { $in: ids }, activo: true })
@@ -54,32 +65,57 @@ export class VentasService {
       );
     }
 
+    const mapProductos = new Map<string, ProductoDocument>();
+    for (const p of productos) {
+      mapProductos.set(p._id.toString(), p);
+    }
+
     /*
-    descuentosStock:
-    key = ID del producto/insumo que realmente se descuenta
-    value = cantidad total a descontar
-  */
+      descuentosStock:
+      key = ID del producto/insumo que realmente se descuenta
+      value = cantidad total a descontar
+    */
     const descuentosStock = new Map<string, number>();
 
-    for (const p of productos) {
-      const cantidadVendida = map.get(p._id.toString()) ?? 0;
+    for (const it of dto.items) {
+      const p = mapProductos.get(it.productoId.trim())!;
+      const cantidadVendida = Number(it.cantidad);
+      const excluidos = new Set(
+        (it.insumosExcluidos ?? []).map((id) => id.trim()),
+      );
 
+      // 1. Receta base (ignorando los insumos excluidos como "Sin papas")
       if (p.descuentaStock?.length) {
         for (const d of p.descuentaStock) {
           const idStock = d.productoId.toString();
-          const cantidadADescontar = Number(d.cantidad) * cantidadVendida;
 
+          if (excluidos.has(idStock)) {
+            continue; // El cliente pidió sin este insumo, no se descuenta
+          }
+
+          const cantidadADescontar = Number(d.cantidad) * cantidadVendida;
           descuentosStock.set(
             idStock,
             (descuentosStock.get(idStock) ?? 0) + cantidadADescontar,
           );
         }
       } else {
+        // Producto que descuenta su propio stock directamente
         const idStock = p._id.toString();
-
         descuentosStock.set(
           idStock,
           (descuentosStock.get(idStock) ?? 0) + cantidadVendida,
+        );
+      }
+
+      // 2. Insumos agregados extra (ej: +1 Medallón para doble/triple)
+      for (const ag of it.agregados ?? []) {
+        const idExtra = ag.productoId.trim();
+        const cantidadExtra = Number(ag.cantidad) * cantidadVendida;
+
+        descuentosStock.set(
+          idExtra,
+          (descuentosStock.get(idExtra) ?? 0) + cantidadExtra,
         );
       }
     }
@@ -94,10 +130,16 @@ export class VentasService {
 
     if (productosStock.length !== idsStock.length) {
       throw new NotFoundException(
-        'Uno o más productos de stock no existen o están inactivos',
+        'Uno o más insumos/productos de stock no existen o están inactivos',
       );
     }
 
+    const mapProductosStock = new Map<string, ProductoDocument>();
+    for (const ps of productosStock) {
+      mapProductosStock.set(ps._id.toString(), ps);
+    }
+
+    // Verificar disponibilidad de stock antes de descontar
     for (const p of productosStock) {
       const requerido = descuentosStock.get(p._id.toString()) ?? 0;
       const disponible = p.stockActual ?? 0;
@@ -109,38 +151,65 @@ export class VentasService {
       }
     }
 
-    const itemsSnapshot = productos.map((p) => {
-      const cantidad = map.get(p._id.toString()) ?? 0;
+    // Armar snapshot de cada renglón vendido
+    const itemsSnapshot = dto.items.map((it) => {
+      const p = mapProductos.get(it.productoId.trim())!;
+      const cantidad = Number(it.cantidad);
+      const recargo = Number(it.recargoUnitario ?? 0);
 
-      const precio =
+      const precioBase =
         dto.medioPago === 'point' && p.precioPoint != null
           ? p.precioPoint
           : (p.precioVenta ?? 0);
 
-      const costoUnitario = p.costo ?? 0;
+      const precioUnitario = precioBase + recargo;
 
-      const subtotal = precio * cantidad;
+      // Sumamos también el costo de los agregados extra si tienen costo cargado
+      const costoExtras = (it.agregados ?? []).reduce((acc, ag) => {
+        const insumoDoc = mapProductosStock.get(ag.productoId.trim());
+        return acc + (insumoDoc?.costo ?? 0) * Number(ag.cantidad);
+      }, 0);
 
-      const gananciaSnapshot = (precio - costoUnitario) * cantidad;
+      const costoUnitario = (p.costo ?? 0) + costoExtras;
+      const subtotal = precioUnitario * cantidad;
+      const gananciaSnapshot = (precioUnitario - costoUnitario) * cantidad;
+
+      const agregadosSnapshot = (it.agregados ?? []).map((ag) => {
+        const insumoDoc = mapProductosStock.get(ag.productoId.trim());
+        return {
+          productoId: new Types.ObjectId(ag.productoId.trim()),
+          nombreSnapshot: insumoDoc?.nombre ?? 'Agregado',
+          cantidad: Number(ag.cantidad),
+        };
+      });
+
+      const excluidosIds = (it.insumosExcluidos ?? []).map(
+        (id) => new Types.ObjectId(id.trim()),
+      );
 
       return {
         productoId: p._id,
-        nombreSnapshot: p.nombre,
-        precioUnitarioSnapshot: precio,
+        nombreSnapshot: it.notaModificadores
+          ? `${p.nombre} (${it.notaModificadores})`
+          : p.nombre,
+        precioUnitarioSnapshot: precioUnitario,
         costoUnitarioSnapshot: costoUnitario,
         cantidad,
         subtotal,
         gananciaSnapshot,
+        insumosExcluidos: excluidosIds,
+        agregados: agregadosSnapshot,
+        notaModificadores: it.notaModificadores ?? '',
       };
     });
 
     const total = itemsSnapshot.reduce((acc, it) => acc + it.subtotal, 0);
-
     const gananciaTotal = itemsSnapshot.reduce(
       (acc, it) => acc + it.gananciaSnapshot,
       0,
     );
 
+    // Ejecutar descuentos en MongoDB
     for (const [idStock, cantidad] of descuentosStock.entries()) {
       await this.productoModel
         .updateOne(
@@ -179,7 +248,7 @@ export class VentasService {
     }
 
     if (venta.estado === 'anulada') {
-      throw new BadRequestException('La venta ya estÃ¡ anulada');
+      throw new BadRequestException('La venta ya está anulada');
     }
 
     const idsProductosVendidos = venta.items.map(
@@ -191,14 +260,13 @@ export class VentasService {
       .exec();
 
     const mapProductos = new Map<string, ProductoDocument>();
-
     for (const p of productosVendidos) {
       mapProductos.set(p._id.toString(), p);
     }
 
     const reposicionesStock = new Map<string, number>();
 
-    for (const item of venta.items) {
+    for (const item of venta.items as any[]) {
       const producto = mapProductos.get(item.productoId.toString());
 
       if (!producto) {
@@ -208,12 +276,17 @@ export class VentasService {
       }
 
       const cantidadVendida = Number(item.cantidad);
+      const excluidos = new Set(
+        (item.insumosExcluidos ?? []).map((id: any) => id.toString()),
+      );
 
+      // 1. Reponer receta base (salvo los que habían sido excluidos)
       if (producto.descuentaStock?.length) {
         for (const d of producto.descuentaStock) {
           const idStock = d.productoId.toString();
-          const cantidadAReponer = Number(d.cantidad) * cantidadVendida;
+          if (excluidos.has(idStock)) continue;
 
+          const cantidadAReponer = Number(d.cantidad) * cantidadVendida;
           reposicionesStock.set(
             idStock,
             (reposicionesStock.get(idStock) ?? 0) + cantidadAReponer,
@@ -221,10 +294,20 @@ export class VentasService {
         }
       } else {
         const idStock = producto._id.toString();
-
         reposicionesStock.set(
           idStock,
           (reposicionesStock.get(idStock) ?? 0) + cantidadVendida,
+        );
+      }
+
+      // 2. Reponer los agregados extra que tenía este ítem
+      for (const ag of item.agregados ?? []) {
+        const idExtra = ag.productoId.toString();
+        const cantidadExtra = Number(ag.cantidad) * cantidadVendida;
+
+        reposicionesStock.set(
+          idExtra,
+          (reposicionesStock.get(idExtra) ?? 0) + cantidadExtra,
         );
       }
     }

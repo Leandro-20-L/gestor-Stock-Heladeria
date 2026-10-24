@@ -2,14 +2,11 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateProductoDto } from './dto/create-producto.dto';
 import { UpdateProductoDto } from './dto/update-producto.dto';
 import { InjectModel } from '@nestjs/mongoose';
-import { Producto, ProductoDocument } from './schemas/producto.schema';
+import { Categoria, Producto, ProductoDocument, TipoItem } from './schemas/producto.schema';
 import { Model } from 'mongoose';
 
-//type ProductoFindFilter = Parameters<Model<ProductoDocument>['find']>[0];
-
-type Categoria = 'helado' | 'bebida' | 'comida';
-
 type ProductoFindFilter = {
+  tipo?: TipoItem | Record<string, unknown>;
   categoria?: Categoria;
   activo?: boolean;
 
@@ -19,10 +16,13 @@ type ProductoFindFilter = {
   // filtros avanzados
   $expr?: Record<string, unknown>;
   $and?: Record<string, unknown>[];
+  $or?: Record<string, unknown>[];
 };
+
 type ProductoLean = {
   _id: string;
   nombre: string;
+  tipo?: TipoItem;
   stockActual?: number;
   stockMinimo?: number;
 };
@@ -33,17 +33,31 @@ export class ProductosService {
     @InjectModel(Producto.name)
     private readonly productoModel: Model<ProductoDocument>,
   ) {}
+
   create(dto: CreateProductoDto) {
-    return this.productoModel.create({ ...dto, activo: true });
+    return this.productoModel.create({
+      ...dto,
+      tipo: dto.tipo ?? 'producto',
+      precioVenta: dto.tipo === 'insumo' ? (dto.precioVenta ?? 0) : dto.precioVenta,
+      activo: true,
+    });
   }
 
   async findAll(params?: {
+    tipo?: string;
     categoria?: string;
     q?: string;
     activos?: string;
     stockBajo?: string;
   }) {
     const filter: ProductoFindFilter = {};
+
+    // Filtro por tipo (contempla productos viejos sin el campo 'tipo')
+    if (params?.tipo === 'insumo') {
+      filter.tipo = 'insumo';
+    } else if (params?.tipo === 'producto') {
+      filter.$or = [{ tipo: 'producto' }, { tipo: { $exists: false } }];
+    }
 
     if (params?.categoria) filter.categoria = params.categoria as Categoria;
 
@@ -58,13 +72,14 @@ export class ProductosService {
     }
 
     const productos = await this.productoModel
-      .find(filter) // 👈 si tu versión de mongoose jode con tipos, dejá solo ESTE cast
+      .find(filter)
       .sort({ createdAt: -1 })
       .lean<ProductoLean[]>()
       .exec();
 
     return productos.map((p) => ({
       ...p,
+      tipo: p.tipo ?? 'producto',
       stockBajo: Number(p.stockActual ?? 0) <= Number(p.stockMinimo ?? 0),
     }));
   }

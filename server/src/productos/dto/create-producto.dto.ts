@@ -10,16 +10,32 @@ import {
 } from 'class-validator';
 import { Type } from 'class-transformer';
 
+export class DescuentoStockDto {
+  @IsMongoId()
+  productoId: string;
+
+  // Permite descontar fracciones (ej: 0.25 kg) además de unidades enteras
+  @IsNumber()
+  @Min(0.001)
+  cantidad: number;
+}
+
 export class CreateProductoDto {
   @IsString()
   nombre: string;
 
-  @IsIn(['helado', 'bebida', 'comida'])
-  categoria: 'helado' | 'bebida' | 'comida';
+  @IsOptional()
+  @IsIn(['producto', 'insumo'])
+  tipo?: 'producto' | 'insumo';
 
+  @IsIn(['helado', 'bebida', 'comida', 'descartable', 'materia_prima'])
+  categoria: 'helado' | 'bebida' | 'comida' | 'descartable' | 'materia_prima';
+
+  // Opcional para que no falle al crear un insumo sin precio de venta
+  @IsOptional()
   @IsNumber()
   @Min(0)
-  precioVenta: number;
+  precioVenta?: number;
 
   @IsOptional()
   @IsNumber()
@@ -34,8 +50,8 @@ export class CreateProductoDto {
   @Min(0)
   stockMinimo: number;
 
-  @IsIn(['kg', 'unidad'])
-  unidad: 'kg' | 'unidad';
+  @IsIn(['kg', 'unidad', 'litro'])
+  unidad: 'kg' | 'unidad' | 'litro';
 
   @IsOptional()
   @IsNumber()
@@ -47,13 +63,4 @@ export class CreateProductoDto {
   @ValidateNested({ each: true })
   @Type(() => DescuentoStockDto)
   descuentaStock?: DescuentoStockDto[];
-}
-
-class DescuentoStockDto {
-  @IsMongoId()
-  productoId: string;
-
-  @IsNumber()
-  @Min(1)
-  cantidad: number;
 }

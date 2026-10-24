@@ -31,12 +31,13 @@ export class ProductosController {
   @UseGuards(AuthGuard('jwt'))
   @Get()
   findAll(
+    @Query('tipo') tipo?: string,
     @Query('categoria') categoria?: string,
     @Query('q') q?: string,
     @Query('activos') activos?: string,
     @Query('stockBajo') stockBajo?: string,
   ) {
-    return this.productosService.findAll({ categoria, q, activos, stockBajo });
+    return this.productosService.findAll({ tipo, categoria, q, activos, stockBajo });
   }
 
   @Get('stock-bajo')

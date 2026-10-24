@@ -6,6 +6,19 @@ export type VentaDocument = Venta & Document;
 export type MedioPago = 'efectivo' | 'transferencia' | 'point';
 
 @Schema({ _id: false })
+export class VentaAgregado {
+  @Prop({ type: Types.ObjectId, ref: 'Producto', required: true })
+  productoId: Types.ObjectId;
+
+  @Prop({ required: true })
+  nombreSnapshot: string;
+
+  @Prop({ required: true, min: 0.001 })
+  cantidad: number;
+}
+export const VentaAgregadoSchema = SchemaFactory.createForClass(VentaAgregado);
+
+@Schema({ _id: false })
 export class VentaItem {
   @Prop({ type: Types.ObjectId, ref: 'Producto', required: true })
   productoId: Types.ObjectId;
@@ -27,6 +40,18 @@ export class VentaItem {
 
   @Prop({ required: true, default: 0 })
   gananciaSnapshot: number;
+
+  // IDs de insumos de la receta original que NO se descontaron (ej: "Sin papas")
+  @Prop({ type: [Types.ObjectId], ref: 'Producto', default: [] })
+  insumosExcluidos: Types.ObjectId[];
+
+  // Insumos extra sumados en esta venta (ej: +1 Medallón para hacerla doble)
+  @Prop({ type: [VentaAgregadoSchema], default: [] })
+  agregados: VentaAgregado[];
+
+  // Texto resumen (ej: "Sin: Papas | Extra: +1 Medallón")
+  @Prop({ required: false, default: '' })
+  notaModificadores?: string;
 }
 export const VentaItemSchema = SchemaFactory.createForClass(VentaItem);
 
