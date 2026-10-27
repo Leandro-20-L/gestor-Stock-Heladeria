@@ -61,6 +61,16 @@ cerrarModalPersonalizar() {
   this.itemModalUid.set(null);
 }
 
+// 1. Agregá esta función para que Angular NO destruya el input mientras escribís:
+  trackByUid(index: number, item: CartItem): string {
+    return item.uid;
+  }
+
+  costoInsumo(insumoId: string): number {
+    const ins = this.productos().find((p) => p._id === insumoId);
+    return Number(ins?.costo ?? 0);
+  }
+
 // Si el cliente pidió 2 o más iguales pero solo 1 lleva agregado/sin papas, la separa en otro renglón
 separarUnidadParaPersonalizar(item: CartItem) {
   if (item.cantidad <= 1) return;
@@ -160,8 +170,10 @@ separarUnidadParaPersonalizar(item: CartItem) {
   }
 
   // Precio base + recargo por agregados (ej: doble carne)
-  precioUnitarioItem(item: CartItem) {
-    return this.precioProducto(item.producto) + (Number(item.recargoUnitario) || 0);
+ precioUnitarioItem(item: CartItem) {
+    const base = this.precioProducto(item.producto);
+    const ajuste = Number(item.recargoUnitario) || 0;
+    return Math.max(0, base + ajuste); // Nunca baja de $0
   }
 
   refrescarProductos(q?: string, mostrarToast = false) {
@@ -265,27 +277,42 @@ separarUnidadParaPersonalizar(item: CartItem) {
     );
   }
 
+  
+
   nombreInsumo(insumoId: string): string {
     const found = this.productos().find((p) => p._id === insumoId);
     return found ? found.nombre : 'Insumo';
   }
 
   // Quitar / restaurar un ingrediente de la receta base (ej: "Sin papas")
+  // Al destildar un ingrediente (ej: "Sin papas"), resta su costo automáticamente
   toggleExcluirInsumo(item: CartItem, insumoId: string) {
-    const excluidos = item.insumosExcluidos.includes(insumoId)
+    const yaEstabaExcluido = item.insumosExcluidos.includes(insumoId);
+    const excluidos = yaEstabaExcluido
       ? item.insumosExcluidos.filter((id) => id !== insumoId)
       : [...item.insumosExcluidos, insumoId];
 
+    const rec = item.producto.descuentaStock?.find((r) => r.productoId === insumoId);
+    const cantReceta = rec ? Number(rec.cantidad) : 1;
+    const costoDeEseInsumo = this.costoInsumo(insumoId) * cantReceta;
+
+    // Si lo quita, resta el costo; si lo vuelve a activar, lo vuelve a sumar
+    const nuevoAjuste = yaEstabaExcluido
+      ? item.recargoUnitario + costoDeEseInsumo
+      : item.recargoUnitario - costoDeEseInsumo;
+
     this.carrito.set(
       this.carrito().map((i) =>
-        i.uid === item.uid ? { ...i, insumosExcluidos: excluidos } : i,
+        i.uid === item.uid
+          ? { ...i, insumosExcluidos: excluidos, recargoUnitario: nuevoAjuste }
+          : i,
       ),
     );
   }
 
   // Sumar un insumo extra (ej: +1 Medallón para doble)
   agregarExtra(item: CartItem) {
-    const insumoId = this.insumoExtraSeleccionadoId;
+    const insumoId = this.insumoExtraSeleccionado[item.uid];
     if (!insumoId) return;
 
     const insumo = this.productos().find((p) => p._id === insumoId);
@@ -298,35 +325,58 @@ separarUnidadParaPersonalizar(item: CartItem) {
         )
       : [...item.agregados, { insumoId, nombre: insumo.nombre, cantidad: 1 }];
 
+    const costoExtra = this.costoInsumo(insumoId);
+
     this.carrito.set(
       this.carrito().map((i) =>
-        i.uid === item.uid ? { ...i, agregados: nuevosAgregados } : i,
+        i.uid === item.uid
+          ? {
+              ...i,
+              agregados: nuevosAgregados,
+              recargoUnitario: i.recargoUnitario + costoExtra,
+            }
+          : i,
       ),
     );
   }
 
-  quitarExtra(item: CartItem, insumoId: string) {
+ quitarExtra(item: CartItem, insumoId: string) {
     const nuevosAgregados = item.agregados
       .map((a) =>
         a.insumoId === insumoId ? { ...a, cantidad: a.cantidad - 1 } : a,
       )
       .filter((a) => a.cantidad > 0);
 
+    const costoExtra = this.costoInsumo(insumoId);
+
     this.carrito.set(
       this.carrito().map((i) =>
-        i.uid === item.uid ? { ...i, agregados: nuevosAgregados } : i,
+        i.uid === item.uid
+          ? {
+              ...i,
+              agregados: nuevosAgregados,
+              recargoUnitario: i.recargoUnitario - costoExtra,
+            }
+          : i,
+      ),
+    );
+  }
+ actualizarRecargo(item: CartItem, valor: string | number) {
+    const num = Number(valor);
+    this.carrito.set(
+      this.carrito().map((i) =>
+        i.uid === item.uid
+          ? { ...i, recargoUnitario: isNaN(num) ? 0 : num }
+          : i,
       ),
     );
   }
 
-  actualizarRecargo(item: CartItem, valor: number) {
-    this.carrito.set(
-      this.carrito().map((i) =>
-        i.uid === item.uid ? { ...i, recargoUnitario: Math.max(0, Number(valor) || 0) } : i,
-      ),
-    );
+  ajustarMontoRapido(item: CartItem, delta: number) {
+    this.actualizarRecargo(item, (Number(item.recargoUnitario) || 0) + delta);
   }
 
+  
   resumenModificadores(item: CartItem): string {
     const partes: string[] = [];
     if (item.insumosExcluidos.length > 0) {

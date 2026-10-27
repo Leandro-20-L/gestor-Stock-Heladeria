@@ -150,7 +150,7 @@
     </div>
 
     <div class="list" *ngIf="carrito().length > 0">
-      <div class="row cart-row" *ngFor="let item of carrito()">
+      <div class="row cart-row" *ngFor="let item of carrito(); trackBy: trackByUid">
         <div class="cart-item-main">
           <div class="info">
             <div class="name">{{ item.producto.nombre }}</div>
@@ -204,44 +204,47 @@
             </div>
 
             <div class="modal-body">
-              <!-- 1. Quitar ingredientes de la receta -->
-              <div class="modal-block" *ngIf="item.producto.descuentaStock?.length">
-                <label class="block-title">Ingredientes (tocá para quitar):</label>
-                <div class="recipe-chips">
-                  <button
-                    type="button"
-                    class="chip"
-                    *ngFor="let rec of item.producto.descuentaStock"
-                    [class.excluded]="item.insumosExcluidos.includes(rec.productoId)"
-                    (click)="toggleExcluirInsumo(item, rec.productoId)"
-                  >
-                    {{ item.insumosExcluidos.includes(rec.productoId) ? '❌ Sin ' : '✅ ' }}
-                    {{ nombreInsumo(rec.productoId) }}
-                  </button>
-                </div>
-              </div>
+             <!-- 1. Quitar ingredientes de la receta -->
+<div class="modal-block" *ngIf="item.producto.descuentaStock?.length">
+  <label class="block-title">Ingredientes (tocá para quitar y descontar su costo):</label>
+  <div class="recipe-chips">
+    <button
+      type="button"
+      class="chip"
+      *ngFor="let rec of item.producto.descuentaStock"
+      [class.excluded]="item.insumosExcluidos.includes(rec.productoId)"
+      (click)="toggleExcluirInsumo(item, rec.productoId)"
+    >
+      {{ item.insumosExcluidos.includes(rec.productoId) ? '❌ Sin ' : '✅ ' }}
+      {{ nombreInsumo(rec.productoId) }}
+      <small *ngIf="costoInsumo(rec.productoId) > 0">
+        (-${{ costoInsumo(rec.productoId) * rec.cantidad }})
+      </small>
+    </button>
+  </div>
+</div>
 
-              <!-- 2. Sumar agregados extra -->
-              <div class="modal-block">
-                <label class="block-title">Sumar agregado (Doble / Extra):</label>
-                <div class="extra-selector">
-                  <select
-                    [(ngModel)]="insumoExtraSeleccionado[item.uid]"
-                    [ngModelOptions]="{ standalone: true }"
-                  >
-                    <option value="">Elegir insumo extra...</option>
-                    <option *ngFor="let ins of insumosDisponibles()" [value]="ins._id">
-                      {{ ins.nombre }}
-                    </option>
-                  </select>
-                  <button
-                    type="button"
-                    class="btn-sumar-extra"
-                    (click)="agregarExtra(item)"
-                  >
-                    + Sumar
-                  </button>
-                </div>
+<!-- 2. Sumar agregados extra -->
+<div class="modal-block">
+  <label class="block-title">Sumar agregado (Doble / Extra):</label>
+  <div class="extra-selector">
+    <select
+      [(ngModel)]="insumoExtraSeleccionado[item.uid]"
+      [ngModelOptions]="{ standalone: true }"
+    >
+      <option value="">Elegir insumo extra...</option>
+      <option *ngFor="let ins of insumosDisponibles()" [value]="ins._id">
+        {{ ins.nombre }} {{ ins.costo ? '(+$' + ins.costo + ')' : '' }}
+      </option>
+    </select>
+    <button
+      type="button"
+      class="btn-sumar-extra"
+      (click)="agregarExtra(item)"
+    >
+      + Sumar
+    </button>
+  </div>
 
                 <!-- Lista de extras cargados -->
                 <div class="extras-added-list" *ngIf="item.agregados.length > 0">
