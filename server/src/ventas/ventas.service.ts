@@ -164,13 +164,29 @@ export class VentasService {
 
       const precioUnitario = precioBase + recargo;
 
-      // Sumamos también el costo de los agregados extra si tienen costo cargado
+      // Costo de los insumos que se agregaron como extra
       const costoExtras = (it.agregados ?? []).reduce((acc, ag) => {
         const insumoDoc = mapProductosStock.get(ag.productoId.trim());
         return acc + (insumoDoc?.costo ?? 0) * Number(ag.cantidad);
       }, 0);
 
-      const costoUnitario = (p.costo ?? 0) + costoExtras;
+      // Costo de los insumos que el cliente pidió QUITAR (no se gastaron)
+      const excluidosSet = new Set((it.insumosExcluidos ?? []).map((id) => id.trim()));
+      let costoAhorrado = 0;
+
+      if (p.descuentaStock?.length && excluidosSet.size > 0) {
+        const idsExcluidos = Array.from(excluidosSet).map((id) => new Types.ObjectId(id));
+        // Buscamos los costos en mapProductosStock o en los productos cargados
+        for (const rec of p.descuentaStock) {
+          const idRec = rec.productoId.toString();
+          if (excluidosSet.has(idRec)) {
+            const insumoExcluido = mapProductosStock.get(idRec);
+            costoAhorrado += (insumoExcluido?.costo ?? 0) * Number(rec.cantidad);
+          }
+        }
+      }
+
+      const costoUnitario = Math.max(0, (p.costo ?? 0) + costoExtras - costoAhorrado);
       const subtotal = precioUnitario * cantidad;
       const gananciaSnapshot = (precioUnitario - costoUnitario) * cantidad;
 
