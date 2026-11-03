@@ -1,33 +1,32 @@
 <h2>Ventas</h2>
 
 <div class="top">
-  <select [formControl]="filtro.controls.medioPago">
-    <option value="">Todos</option>
-    <option value="efectivo">Efectivo</option>
-    <option value="transferencia">Transferencia</option>
-    <option value="point">Point</option>
+  <select [formControl]="filtro.controls.medioPago" class="filter-select">
+    <option value="">Todos los medios</option>
+    <option value="efectivo">💵 Efectivo</option>
+    <option value="transferencia">🏦 Transferencia</option>
+    <option value="point">💳 Point</option>
   </select>
 
   <input
     type="text"
+    class="filter-search"
     [formControl]="filtro.controls.q"
-    placeholder="Buscar por producto (ej: helado, manaos...)"
+    placeholder="Buscar producto (ej: helado, hamburguesa...)"
   />
 
-  <button type="button" (click)="cargar()" [disabled]="cargando()">
-    Recargar
-  </button>
+  <div class="top-actions">
+    <button type="button" (click)="cargar()" [disabled]="cargando()">
+      ↻ Recargar
+    </button>
 
-  <button type="button" (click)="limpiarFiltros()" [disabled]="cargando()">
-    Limpiar
-  </button>
-
-  <div class="total">
-    Total: <b>{{ totalFiltrado() }}</b>
+    <button type="button" (click)="limpiarFiltros()" [disabled]="cargando()">
+      Limpiar
+    </button>
   </div>
 </div>
 
-<div *ngIf="cargando()">Cargando...</div>
+<div class="loading-box" *ngIf="cargando()">Cargando ventas...</div>
 
 <div class="tabla" *ngIf="!cargando()">
   <div class="fila header">
@@ -35,44 +34,220 @@
     <div>Medio</div>
     <div>Total</div>
     <div>Estado</div>
-    <div></div>
+    <div style="text-align: right;">Acciones</div>
   </div>
 
-  <ng-container *ngFor="let v of ventasFiltradas()">
+  <div
+    class="venta-card"
+    *ngFor="let v of ventasFiltradas()"
+    [class.is-open]="abiertaId() === v._id"
+    [class.is-anulada]="v.estado === 'anulada'"
+  >
     <div class="fila">
-      <div>{{ v.createdAt | date: "dd/MM HH:mm" }}</div>
-      <div>{{ v.medioPago }}</div>
-      <div>
-        <b>{{ v.total }}</b>
+      <div class="cell-fecha">
+        <span class="mobile-label">Fecha</span>
+        <span class="fecha-val">{{ v.createdAt | date: "dd/MM · HH:mm" }} hs</span>
       </div>
-      <div>{{ v.estado }}</div>
+
+      <div class="cell-medio">
+        <span class="mobile-label">Medio</span>
+        <span class="medio-pill">{{ v.medioPago }}</span>
+      </div>
+
+      <div class="cell-total">
+        <span class="mobile-label">Total</span>
+        <b class="total-val">${{ v.total }}</b>
+      </div>
+
+      <div class="cell-estado">
+        <span
+          class="status-badge"
+          [class.confirmada]="v.estado === 'confirmada'"
+          [class.anulada]="v.estado === 'anulada'"
+        >
+          {{ v.estado === "confirmada" ? "Confirmada" : "Anulada" }}
+        </span>
+      </div>
+
       <div class="buttons">
         <button
           type="button"
+          class="btn-anular"
           *ngIf="v.estado === 'confirmada'"
           (click)="anular(v)"
         >
           Anular
         </button>
-        <span *ngIf="v.estado === 'anulada'" class="badge-anulada">
-          Anulada
-        </span>
-        <button type="button" (click)="toggleDetalle(v._id)">
-          {{ abiertaId() === v._id ? "Ocultar" : "Detalle" }}
+
+        <button
+          type="button"
+          class="btn-detalle"
+          [class.active]="abiertaId() === v._id"
+          (click)="toggleDetalle(v._id)"
+        >
+          {{ abiertaId() === v._id ? "▲ Ocultar" : "▼ Detalle (" + v.items.length + ")" }}
         </button>
       </div>
     </div>
 
+    <!-- DETALLE MEJORADO TIPO TICKET -->
     <div class="detalle" *ngIf="abiertaId() === v._id">
-      <div class="item" *ngFor="let it of v.items">
-        <div>{{ it.nombreSnapshot }}</div>
-        <div>
-          {{ it.cantidad }} x {{ it.precioUnitarioSnapshot }} =
-          <b>{{ it.subtotal }}</b>
+      <div class="detalle-head">
+        <span>Productos del pedido</span>
+        <span>Subtotal</span>
+      </div>
+
+      <div class="detalle-list">
+        <div class="item" *ngFor="let it of v.items">
+          <div class="item-info">
+            <div class="item-main-row">
+              <span class="item-qty">{{ it.cantidad }}x</span>
+              <span class="item-name">{{ it.nombreSnapshot }}</span>
+            </div>
+            <div class="item-unit-price">
+              Precio unitario: ${{ it.precioUnitarioSnapshot }}
+            </div>
+          </div>
+
+          <div class="item-subtotal">
+            <b>${{ it.subtotal }}</b>
+          </div>
         </div>
       </div>
+
+      <div class="detalle-footer">
+        <span>Total cobrado ({{ v.medioPago | uppercase }})</span>
+        <b>${{ v.total }}</b>
+      </div>
     </div>
-  </ng-container>
+  </div>
+
+  <div class="empty" *ngIf="ventasFiltradas().length === 0">
+    No hay ventas con esos filtros.
+  </div>
+</div><h2>Ventas</h2>
+
+<div class="top">
+  <select [formControl]="filtro.controls.medioPago" class="filter-select">
+    <option value="">Todos los medios</option>
+    <option value="efectivo">💵 Efectivo</option>
+    <option value="transferencia">🏦 Transferencia</option>
+    <option value="point">💳 Point</option>
+  </select>
+
+  <input
+    type="text"
+    class="filter-search"
+    [formControl]="filtro.controls.q"
+    placeholder="Buscar producto (ej: helado, hamburguesa...)"
+  />
+
+  <div class="top-actions">
+    <button type="button" (click)="cargar()" [disabled]="cargando()">
+      ↻ Recargar
+    </button>
+
+    <button type="button" (click)="limpiarFiltros()" [disabled]="cargando()">
+      Limpiar
+    </button>
+  </div>
+</div>
+
+<div class="loading-box" *ngIf="cargando()">Cargando ventas...</div>
+
+<div class="tabla" *ngIf="!cargando()">
+  <div class="fila header">
+    <div>Fecha</div>
+    <div>Medio</div>
+    <div>Total</div>
+    <div>Estado</div>
+    <div style="text-align: right;">Acciones</div>
+  </div>
+
+  <div
+    class="venta-card"
+    *ngFor="let v of ventasFiltradas()"
+    [class.is-open]="abiertaId() === v._id"
+    [class.is-anulada]="v.estado === 'anulada'"
+  >
+    <div class="fila">
+      <div class="cell-fecha">
+        <span class="mobile-label">Fecha</span>
+        <span class="fecha-val">{{ v.createdAt | date: "dd/MM · HH:mm" }} hs</span>
+      </div>
+
+      <div class="cell-medio">
+        <span class="mobile-label">Medio</span>
+        <span class="medio-pill">{{ v.medioPago }}</span>
+      </div>
+
+      <div class="cell-total">
+        <span class="mobile-label">Total</span>
+        <b class="total-val">${{ v.total }}</b>
+      </div>
+
+      <div class="cell-estado">
+        <span
+          class="status-badge"
+          [class.confirmada]="v.estado === 'confirmada'"
+          [class.anulada]="v.estado === 'anulada'"
+        >
+          {{ v.estado === "confirmada" ? "Confirmada" : "Anulada" }}
+        </span>
+      </div>
+
+      <div class="buttons">
+        <button
+          type="button"
+          class="btn-anular"
+          *ngIf="v.estado === 'confirmada'"
+          (click)="anular(v)"
+        >
+          Anular
+        </button>
+
+        <button
+          type="button"
+          class="btn-detalle"
+          [class.active]="abiertaId() === v._id"
+          (click)="toggleDetalle(v._id)"
+        >
+          {{ abiertaId() === v._id ? "▲ Ocultar" : "▼ Detalle (" + v.items.length + ")" }}
+        </button>
+      </div>
+    </div>
+
+    <!-- DETALLE MEJORADO TIPO TICKET -->
+    <div class="detalle" *ngIf="abiertaId() === v._id">
+      <div class="detalle-head">
+        <span>Productos del pedido</span>
+        <span>Subtotal</span>
+      </div>
+
+      <div class="detalle-list">
+        <div class="item" *ngFor="let it of v.items">
+          <div class="item-info">
+            <div class="item-main-row">
+              <span class="item-qty">{{ it.cantidad }}x</span>
+              <span class="item-name">{{ it.nombreSnapshot }}</span>
+            </div>
+            <div class="item-unit-price">
+              Precio unitario: ${{ it.precioUnitarioSnapshot }}
+            </div>
+          </div>
+
+          <div class="item-subtotal">
+            <b>${{ it.subtotal }}</b>
+          </div>
+        </div>
+      </div>
+
+      <div class="detalle-footer">
+        <span>Total cobrado ({{ v.medioPago | uppercase }})</span>
+        <b>${{ v.total }}</b>
+      </div>
+    </div>
+  </div>
 
   <div class="empty" *ngIf="ventasFiltradas().length === 0">
     No hay ventas con esos filtros.

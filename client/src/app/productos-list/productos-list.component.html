@@ -1,13 +1,13 @@
 <div class="header">
-  <h2>{{ tipo.value === 'insumo' ? 'Insumos' : 'Productos' }}</h2>
-  <a routerLink="/app/productos/nuevo">+ Nuevo</a>
-  <button type="button" class="refresh-btn" (click)="cargar(true)">
-    <img src="refresh-ccw.svg" alt="" />
+  <h2>{{ tipo.value === 'insumo' ? 'Insumos y Descartables' : 'Productos de Venta' }}</h2>
+  <a routerLink="/app/productos/nuevo" class="btn-nuevo">+ Nuevo</a>
+  <button type="button" class="refresh-btn" (click)="cargar(true)" title="Actualizar listado">
+    <img src="refresh-ccw.svg" alt="Recargar" />
   </button>
 </div>
 
 <!-- Selector Principal: Productos vs Insumos -->
-<div class="category-tabs" style="margin-bottom: 12px;">
+<div class="category-tabs principal-tabs">
   <button
     type="button"
     (click)="cambiarTipo('producto')"
@@ -25,18 +25,20 @@
   </button>
 </div>
 
+<!-- FILTROS -->
 <div class="filters">
-  <input [formControl]="q" placeholder="Buscar por nombre..." />
+  <input class="search-input" [formControl]="q" placeholder="Buscar por nombre..." />
 
-  <label>
-    <input type="checkbox" [formControl]="verInactivos" />
-    Ver inactivos
-  </label>
-  <label>
-    <input type="checkbox" [formControl]="stockBajo" />
-    Stock bajo
-  </label>
-  <button (click)="cargar()">Buscar</button>
+  <div class="filters-row-checks">
+    <label class="check-label">
+      <input type="checkbox" [formControl]="verInactivos" />
+      <span>Ver inactivos</span>
+    </label>
+    <label class="check-label">
+      <input type="checkbox" [formControl]="stockBajo" />
+      <span>Stock bajo</span>
+    </label>
+  </div>
 </div>
 
 <!-- Sub-pestañas de Categoría para PRODUCTOS -->
@@ -48,7 +50,6 @@
   >
     Todos
   </button>
-
   <button
     type="button"
     (click)="categoria.setValue('helado')"
@@ -56,7 +57,6 @@
   >
     🍦 Helados
   </button>
-
   <button
     type="button"
     (click)="categoria.setValue('comida')"
@@ -64,7 +64,6 @@
   >
     🍔 Comida
   </button>
-
   <button
     type="button"
     (click)="categoria.setValue('bebida')"
@@ -83,7 +82,6 @@
   >
     Todos
   </button>
-
   <button
     type="button"
     (click)="categoria.setValue('materia_prima')"
@@ -91,7 +89,6 @@
   >
     🥩 Materia Prima
   </button>
-
   <button
     type="button"
     (click)="categoria.setValue('descartable')"
@@ -101,7 +98,8 @@
   </button>
 </div>
 
-<table class="desktop-table" *ngIf="productos().length > 0; else empty">
+<!-- TABLA ESCRITORIO -->
+<table class="desktop-table" *ngIf="productos().length > 0">
   <thead>
     <tr>
       <th>Nombre</th>
@@ -110,7 +108,7 @@
       <th>{{ tipo.value === 'insumo' ? 'Costo' : 'Precio' }}</th>
       <th>Stock</th>
       <th>Activo</th>
-      <th></th>
+      <th style="text-align: right;">Acciones</th>
     </tr>
   </thead>
 
@@ -118,20 +116,15 @@
     <tr *ngFor="let p of productos()" [class.low]="p.stockBajo">
       <td class="name">
         {{ p.nombre }}
-
-        <span *ngIf="p.stockBajo" class="badge bad"> ⚠ Stock bajo </span>
+        <span *ngIf="p.stockBajo" class="badge bad">⚠ Stock bajo</span>
       </td>
 
       <td>{{ p.categoria }}</td>
       <td>{{ p.unidad }}</td>
-      <td>
-        {{
-          tipo.value === 'insumo'
-            ? (p.costo ?? '-')
-            : (p.precioVenta ?? '-')
-        }}
+      <td class="price-col">
+        ${{ tipo.value === 'insumo' ? (p.costo ?? '-') : (p.precioVenta ?? '-') }}
       </td>
-      <td>{{ p.stockActual ?? "-" }}</td>
+      <td><b>{{ p.stockActual ?? "-" }}</b></td>
 
       <td>
         <span class="badge" [class.ok]="p.activo" [class.neutral]="!p.activo">
@@ -140,8 +133,8 @@
       </td>
 
       <td class="actions">
-        <a [routerLink]="['/app/productos/', p._id, 'editar']">Editar</a>
-        <button (click)="desactivar(p)" [disabled]="!p.activo">
+        <a [routerLink]="['/app/productos/', p._id, 'editar']" class="btn-edit">Editar</a>
+        <button class="btn-deactivate" (click)="desactivar(p)" [disabled]="!p.activo">
           Desactivar
         </button>
       </td>
@@ -149,6 +142,7 @@
   </tbody>
 </table>
 
+<!-- LISTADO MOBILE (TARJETAS) -->
 <div class="mobile-products" *ngIf="productos().length > 0">
   <article
     class="product-card"
@@ -158,51 +152,51 @@
     <div class="card-head">
       <div>
         <h3>{{ p.nombre }}</h3>
-        <span class="categoria">{{ p.categoria }}</span>
+        <span class="categoria-pill">{{ p.categoria }}</span>
       </div>
 
       <span class="badge" [class.ok]="p.activo" [class.neutral]="!p.activo">
-        {{ p.activo ? "Sí" : "No" }}
+        {{ p.activo ? "Activo" : "Inactivo" }}
       </span>
     </div>
 
-    <span *ngIf="p.stockBajo" class="badge bad alert-stock">
-      ⚠ Stock bajo
-    </span>
+    <div class="stock-alert-banner" *ngIf="p.stockBajo">
+      ⚠️ Atención: Stock por debajo del mínimo recomendado
+    </div>
 
-    <div class="card-info">
-      <div>
+    <div class="card-info-grid">
+      <div class="info-box">
+        <span>{{ tipo.value === 'insumo' ? 'Costo' : 'Precio' }}</span>
+        <b>${{ tipo.value === 'insumo' ? (p.costo ?? '-') : (p.precioVenta ?? '-') }}</b>
+      </div>
+
+      <div class="info-box">
+        <span>Stock</span>
+        <b [class.text-danger]="p.stockBajo">{{ p.stockActual ?? "-" }}</b>
+      </div>
+
+      <div class="info-box">
         <span>Unidad</span>
         <b>{{ p.unidad }}</b>
-      </div>
-
-      <div>
-        <span>{{ tipo.value === 'insumo' ? 'Costo' : 'Precio' }}</span>
-        <b>
-          $
-          {{
-            tipo.value === 'insumo'
-              ? (p.costo ?? '-')
-              : (p.precioVenta ?? '-')
-          }}
-        </b>
-      </div>
-
-      <div>
-        <span>Stock</span>
-        <b>{{ p.stockActual ?? "-" }}</b>
       </div>
     </div>
 
     <div class="mobile-actions">
-      <a [routerLink]="['/app/productos/', p._id, 'editar']">Editar</a>
-      <button (click)="desactivar(p)" [disabled]="!p.activo">Desactivar</button>
+      <a [routerLink]="['/app/productos/', p._id, 'editar']" class="m-btn-edit">
+        ✏️ Editar
+      </a>
+      <button class="m-btn-delete" (click)="desactivar(p)" [disabled]="!p.activo">
+        🚫 Desactivar
+      </button>
     </div>
   </article>
 </div>
 
+<!-- ESTADO VACÍO (CUANDO NO HAY RESULTADOS) -->
 <ng-template #empty>
-  <p>
-    No hay {{ tipo.value === 'insumo' ? 'insumos' : 'productos' }} para mostrar.
-  </p>
+  <div class="empty-state">
+    <div class="empty-icon">🔍</div>
+    <h4>No se encontraron resultados</h4>
+    <p>No hay {{ tipo.value === 'insumo' ? 'insumos' : 'productos' }} que coincidan con la búsqueda o filtros aplicados.</p>
+  </div>
 </ng-template>

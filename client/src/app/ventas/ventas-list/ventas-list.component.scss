@@ -1,186 +1,283 @@
+$bg-main: #14161c;
+$bg-panel: #1b1e26;
+$bg-card: #222631;
+$gold: #ffd60a;
+$gold-border: rgba(255, 214, 10, 0.28);
+$border-subtle: rgba(255, 255, 255, 0.08);
+$text-main: #ffffff;
+$text-muted: #9ca3af;
+$danger: #ef4444;
+$success: #22c55e;
+
 :host {
   display: block;
-  color: #fff;
+  width: 100%;
+  max-width: 100vw;
+  overflow-x: hidden;
+  box-sizing: border-box;
+  padding: 12px 14px 110px; /* Espacio inferior para la barra mobile */
+  color: $text-main;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
 }
 
 h2 {
-  margin: 0 0 14px;
-  font-size: 22px;
-  font-weight: 900;
-  letter-spacing: 0.2px;
+  margin: 4px 0 14px;
+  font-size: 1.5rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
 }
 
-/* TOP BAR */
+/* ================= BARRA DE FILTROS SUPERIOR ================= */
 .top {
   display: flex;
   align-items: center;
   gap: 10px;
   flex-wrap: wrap;
-
   padding: 12px;
-  border-radius: 16px;
-
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  background: rgba(20, 22, 28, 0.75);
-  backdrop-filter: blur(10px);
-  box-shadow: 0 12px 26px rgba(0, 0, 0, 0.35);
-
-  margin-bottom: 14px;
+  border-radius: 18px;
+  border: 1px solid $border-subtle;
+  background: $bg-panel;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.35);
+  margin-bottom: 16px;
 }
 
-.top select,
-.top input {
-  padding: 12px 12px;
-  border-radius: 14px;
-
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  background: rgba(255, 255, 255, 0.04);
-  color: #fff;
-
+.filter-select,
+.filter-search {
+  padding: 11px 14px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: $bg-main;
+  color: $text-main;
+  font-size: 0.92rem;
   outline: none;
-  transition: 0.16s ease;
+  transition: border-color 0.15s ease;
 
   &::placeholder {
-    color: rgba(255, 255, 255, 0.45);
+    color: $text-muted;
   }
 
   &:focus {
-    border-color: rgba(255, 214, 10, 0.55);
-    box-shadow: 0 0 0 4px rgba(255, 214, 10, 0.12);
+    border-color: $gold;
   }
 }
 
-.top input {
+.filter-select {
+  min-width: 170px;
+  font-weight: 600;
+  border-color: $gold-border;
+
+  option {
+    background-color: $bg-main;
+    color: $text-main;
+  }
+}
+
+.filter-search {
   flex: 1;
-  min-width: 260px;
+  min-width: 200px;
 }
 
-.top select {
-  min-width: 160px;
-}
+.top-actions {
+  display: flex;
+  gap: 8px;
 
-/* Buttons */
-.top button {
-  padding: 12px 14px;
-  border-radius: 14px;
-  font-weight: 900;
-  cursor: pointer;
-  transition: 0.16s ease;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  background: rgba(255, 255, 255, 0.06);
-  color: rgba(255, 255, 255, 0.9);
+  button {
+    padding: 11px 16px;
+    border-radius: 12px;
+    font-weight: 700;
+    font-size: 0.88rem;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    border: 1px solid $border-subtle;
+    background: $bg-card;
+    color: $text-main;
 
-  &:hover {
-    transform: translateY(-1px);
-    border-color: rgba(255, 214, 10, 0.45);
-    background: rgba(255, 214, 10, 0.1);
+    &:hover:not(:disabled) {
+      border-color: $gold;
+      background: rgba(255, 214, 10, 0.1);
+    }
+
+    &:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
   }
-
-  &:disabled {
-    opacity: 0.55;
-    cursor: not-allowed;
-    transform: none;
-  }
 }
 
-/* Total chip */
-.total {
-  margin-left: auto;
-  padding: 10px 12px;
-  border-radius: 999px;
-  font-weight: 900;
-
-  border: 1px solid rgba(255, 214, 10, 0.2);
-  background: linear-gradient(
-    180deg,
-    rgba(255, 214, 10, 0.14),
-    rgba(255, 214, 10, 0.06)
-  );
+.loading-box {
+  padding: 20px;
+  text-align: center;
+  color: $text-muted;
+  background: $bg-panel;
+  border-radius: 16px;
+  border: 1px solid $border-subtle;
 }
 
-.total b {
-  color: #ffd60a;
-}
-
-/* TABLE */
+/* ================= TABLA Y TARJETAS DE VENTA ================= */
 .tabla {
   width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
 
 .fila.header {
   display: grid;
-  grid-template-columns: 1.3fr 1fr 0.8fr 0.9fr 0.6fr;
+  grid-template-columns: 1.2fr 1fr 0.9fr 0.9fr 1.4fr;
   gap: 10px;
-  padding: 0 10px 6px;
-
-  font-size: 12px;
+  padding: 0 16px 4px;
+  font-size: 0.75rem;
+  font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.3px;
-  color: rgba(255, 255, 255, 0.6);
+  letter-spacing: 0.04em;
+  color: $text-muted;
+}
+
+.venta-card {
+  border-radius: 16px;
+  border: 1px solid $border-subtle;
+  background: $bg-panel;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.28);
+  overflow: hidden;
+  transition: border-color 0.16s ease;
+
+  &.is-open {
+    border-color: $gold-border;
+  }
+
+  &.is-anulada {
+    opacity: 0.72;
+  }
 }
 
 .fila {
   display: grid;
-  grid-template-columns: 1.3fr 1fr 0.8fr 0.9fr 0.6fr;
+  grid-template-columns: 1.2fr 1fr 0.9fr 0.9fr 1.4fr;
   gap: 10px;
-
   align-items: center;
-  padding: 12px 10px;
-  border-radius: 16px;
+  padding: 14px 16px;
+}
 
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  background: rgba(20, 22, 28, 0.72);
-  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.3);
+.mobile-label {
+  display: none;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: $text-muted;
+  margin-bottom: 2px;
+}
 
-  transition: 0.16s ease;
-  margin-bottom: 10px;
+.fecha-val {
+  font-weight: 600;
+  font-size: 0.92rem;
+}
 
-  &:hover {
-    transform: translateY(-1px);
-    border-color: rgba(255, 214, 10, 0.2);
-    background: rgba(255, 214, 10, 0.05);
+.medio-pill {
+  display: inline-block;
+  text-transform: capitalize;
+  font-weight: 700;
+  font-size: 0.85rem;
+  padding: 4px 10px;
+  border-radius: 8px;
+  background: $bg-card;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.total-val {
+  color: $gold;
+  font-size: 1.08rem;
+  font-weight: 800;
+}
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 700;
+
+  &.confirmada {
+    background: rgba(34, 197, 94, 0.14);
+    color: #86efac;
+    border: 1px solid rgba(34, 197, 94, 0.35);
   }
 
-  b {
-    color: #ffd60a;
+  &.anulada {
+    background: rgba(239, 68, 68, 0.15);
+    color: #fca5a5;
+    border: 1px solid rgba(239, 68, 68, 0.35);
   }
 }
 
-/* Estado como "badge" visual */
-.fila > div:nth-child(4) {
-  font-weight: 900;
-  color: rgba(255, 255, 255, 0.85);
-}
+.buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
 
-/* Botón detalle */
-.fila button {
-  justify-self: end;
-  padding: 10px 12px;
-  border-radius: 14px;
-  cursor: pointer;
-  font-weight: 900;
+  button {
+    padding: 8px 12px;
+    border-radius: 10px;
+    font-weight: 700;
+    font-size: 0.82rem;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
 
-  border: 1px solid rgba(255, 214, 10, 0.4);
-  background: rgba(255, 214, 10, 0.1);
-  color: #fff;
+  .btn-anular {
+    background: rgba(239, 68, 68, 0.12);
+    color: #fca5a5;
+    border: 1px solid rgba(239, 68, 68, 0.35);
 
-  transition: 0.16s ease;
+    &:hover {
+      background: rgba(239, 68, 68, 0.24);
+    }
+  }
 
-  &:hover {
-    transform: translateY(-1px);
-    border-color: rgba(255, 214, 10, 0.7);
-    background: rgba(255, 214, 10, 0.16);
+  .btn-detalle {
+    background: rgba(255, 214, 10, 0.1);
+    color: $text-main;
+    border: 1px solid $gold-border;
+
+    &.active,
+    &:hover {
+      background: $gold;
+      color: #000;
+      border-color: $gold;
+    }
   }
 }
 
-/* DETALLE */
+/* ================= DETALLE TIPO TICKET / RECIBO ================= */
 .detalle {
-  margin: -2px 0 12px;
-  padding: 12px 12px;
-  border-radius: 16px;
+  background: $bg-main;
+  border-top: 1px dashed rgba(255, 255, 255, 0.14);
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
 
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  background: rgba(255, 255, 255, 0.03);
+.detalle-head {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.74rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: $text-muted;
+  padding: 0 4px;
+}
+
+.detalle-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
 .item {
@@ -188,104 +285,153 @@ h2 {
   justify-content: space-between;
   align-items: center;
   gap: 12px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: $bg-panel;
+  border: 1px solid $border-subtle;
 
-  padding: 10px 10px;
-  border-radius: 14px;
-
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  background: rgba(0, 0, 0, 0.22);
-
-  & + & {
-    margin-top: 8px;
+  .item-info {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    min-width: 0;
+    flex: 1;
   }
 
-  b {
-    color: #ffd60a;
+  .item-main-row {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .item-qty {
+    background: rgba(255, 214, 10, 0.16);
+    color: $gold;
+    font-weight: 800;
+    font-size: 0.8rem;
+    padding: 2px 7px;
+    border-radius: 6px;
+  }
+
+  .item-name {
+    font-weight: 700;
+    font-size: 0.92rem;
+    word-break: break-word;
+  }
+
+  .item-unit-price {
+    font-size: 0.78rem;
+    color: $text-muted;
+  }
+
+  .item-subtotal b {
+    color: $gold;
+    font-size: 1rem;
+    font-weight: 800;
+    white-space: nowrap;
   }
 }
 
-/* EMPTY */
-.empty {
-  padding: 14px;
-  border-radius: 16px;
+.detalle-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 8px;
+  border-top: 1px solid $border-subtle;
+  font-size: 0.85rem;
+  color: $text-muted;
 
-  color: rgba(255, 255, 255, 0.65);
-  border: 1px dashed rgba(255, 255, 255, 0.12);
+  b {
+    color: $gold;
+    font-size: 1.1rem;
+    font-weight: 800;
+  }
+}
+
+.empty {
+  padding: 24px;
+  text-align: center;
+  border-radius: 16px;
+  color: $text-muted;
+  border: 1px dashed rgba(255, 255, 255, 0.14);
   background: rgba(255, 255, 255, 0.02);
 }
 
-.buttons {
-  display: flex;
-  flex-direction: row;
-  gap: 10px;
-  justify-content: center;
-}
+/* ================= ADAPTACIÓN MOBILE (CELULARES) ================= */
+@media (max-width: 850px) {
+  .top {
+    flex-direction: column;
+    align-items: stretch;
+  }
 
-/* Responsive */
-@media (max-width: 950px) {
+  .filter-select,
+  .filter-search {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .top-actions {
+    width: 100%;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+
   .fila.header {
     display: none;
   }
 
+  /* Diseño de tarjeta 2x2 limpio para cada venta en celular */
   .fila {
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr auto;
+    grid-template-areas:
+      "fecha estado"
+      "medio total"
+      "botones botones";
+    gap: 10px 12px;
+    padding: 14px;
+  }
+
+  .mobile-label {
+    display: block;
+  }
+
+  .cell-fecha {
+    grid-area: fecha;
+  }
+
+  .cell-estado {
+    grid-area: estado;
+    justify-self: end;
+    align-self: start;
+  }
+
+  .cell-medio {
+    grid-area: medio;
+  }
+
+  .cell-total {
+    grid-area: total;
+    text-align: right;
+    justify-self: end;
+
+    .total-val {
+      font-size: 1.25rem;
+    }
+  }
+
+  .buttons {
+    grid-area: botones;
+    width: 100%;
+    padding-top: 10px;
+    border-top: 1px solid $border-subtle;
+    display: flex;
     gap: 8px;
 
-    div {
-      display: flex;
-      justify-content: space-between;
-      gap: 12px;
-
-      &:nth-child(5) {
-        justify-content: flex-end;
-      }
-    }
-
-    /* pseudo labels */
-    div:nth-child(1)::before {
-      content: "Fecha";
-      color: rgba(255, 255, 255, 0.55);
-      font-size: 11px;
-      text-transform: uppercase;
-      letter-spacing: 0.3px;
-    }
-    div:nth-child(2)::before {
-      content: "Medio";
-      color: rgba(255, 255, 255, 0.55);
-      font-size: 11px;
-      text-transform: uppercase;
-      letter-spacing: 0.3px;
-    }
-    div:nth-child(3)::before {
-      content: "Total";
-      color: rgba(255, 255, 255, 0.55);
-      font-size: 11px;
-      text-transform: uppercase;
-      letter-spacing: 0.3px;
-    }
-    div:nth-child(4)::before {
-      content: "Estado";
-      color: rgba(255, 255, 255, 0.55);
-      font-size: 11px;
-      text-transform: uppercase;
-      letter-spacing: 0.3px;
+    button {
+      flex: 1;
+      padding: 10px;
+      text-align: center;
     }
   }
-
-  .total {
-    margin-left: 0;
-    width: 100%;
-    text-align: center;
-  }
-}
-
-select {
-  background-color: rgba(20, 22, 28, 0.9);
-  color: #fff;
-  border: 1px solid rgba(255, 214, 10, 0.35);
-}
-
-select option {
-  background-color: #14161c;
-  color: #fff;
 }

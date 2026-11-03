@@ -1,27 +1,47 @@
-<h2>
-  {{
-    esEdicion()
-      ? esInsumo
-        ? "Editar insumo"
-        : "Editar producto"
-      : esInsumo
-        ? "Nuevo insumo"
-        : "Nuevo producto"
-  }}
-</h2>
+<div class="form-header">
+  <h2>
+    {{
+      esEdicion()
+        ? esInsumo
+          ? "Editar insumo"
+          : "Editar producto"
+        : esInsumo
+          ? "Nuevo insumo"
+          : "Nuevo producto"
+    }}
+  </h2>
+  <p class="subtitle">
+    {{
+      esInsumo
+        ? "Control de materia prima, ingredientes y descartables."
+        : "Configurá precios de mostrador, stock y receta de descuento."
+    }}
+  </p>
+</div>
 
 <form [formGroup]="form" (ngSubmit)="guardar()">
-  <div class="grid">
-    <label>
-      Tipo de registro
-      <select formControlName="tipo">
-        <option value="producto">🍦 Producto de venta</option>
-        <option value="insumo">📦 Insumo / Materia prima</option>
-      </select>
-    </label>
+  <!-- SELECTOR TIPO PESTAÑAS (Mucho más rápido en mobile que un select) -->
+  <div class="type-switcher">
+    <button
+      type="button"
+      [class.active]="!esInsumo"
+      (click)="form.get('tipo')?.setValue('producto')"
+    >
+      🍦 Producto de venta
+    </button>
+    <button
+      type="button"
+      [class.active]="esInsumo"
+      (click)="form.get('tipo')?.setValue('insumo')"
+    >
+      📦 Insumo / Materia prima
+    </button>
+  </div>
 
-    <label>
-      Nombre
+  <div class="grid">
+    <!-- Nombre ocupa todo el ancho -->
+    <label class="full-width">
+      <span>Nombre</span>
       <input
         formControlName="nombre"
         [placeholder]="
@@ -49,33 +69,34 @@
       </small>
     </label>
 
+    <!-- Categoría y Unidad van juntas lado a lado incluso en mobile -->
     <label>
-      Categoría
+      <span>Categoría</span>
       <select formControlName="categoria">
         <optgroup label="Productos de venta" *ngIf="!esInsumo">
-          <option value="helado">Helado</option>
-          <option value="comida">Comida</option>
-          <option value="bebida">Bebida</option>
+          <option value="helado">🍦 Helado</option>
+          <option value="comida">🍔 Comida</option>
+          <option value="bebida">🥤 Bebida</option>
         </optgroup>
         <optgroup label="Insumos internos" *ngIf="esInsumo">
-          <option value="materia_prima">Materia prima (pan, carne, etc.)</option>
-          <option value="descartable">Descartable (potes, bolsas, etc.)</option>
+          <option value="materia_prima">🥩 Materia prima</option>
+          <option value="descartable">🥡 Descartable</option>
         </optgroup>
       </select>
     </label>
 
     <label>
-      Unidad
+      <span>Unidad de medida</span>
       <select formControlName="unidad">
-        <option value="kg">kg</option>
-        <option value="unidad">unidad</option>
-        <option value="litro">litro</option>
+        <option value="kg">Kilogramos (kg)</option>
+        <option value="unidad">Unidades (u)</option>
+        <option value="litro">Litros (lt)</option>
       </select>
     </label>
 
-    <!-- Precios de venta: SOLO visibles si es un Producto -->
-    <label *ngIf="!esInsumo">
-      Precio venta
+    <!-- Precios de venta: SOLO visibles si es Producto -->
+    <label *ngIf="!esInsumo" class="highlight-gold">
+      <span>Precio venta ($)</span>
       <input
         type="number"
         formControlName="precioVenta"
@@ -90,7 +111,7 @@
           form.get('precioVenta')?.hasError('required')
         "
       >
-        Ingresá el precio de venta.
+        Ingresá el precio.
       </small>
       <small class="error-msg" *ngIf="form.get('precioVenta')?.hasError('min')">
         No puede ser negativo.
@@ -98,34 +119,36 @@
     </label>
 
     <label *ngIf="!esInsumo">
-      Precio Point
+      <span>Precio Point ($)</span>
       <input
         type="number"
         formControlName="precioPoint"
         min="0"
-        placeholder="Opcional"
+        placeholder="Igual a venta"
       />
-
-      <small class="hint">
-        Si queda vacío, se usa el precio de venta normal.
-      </small>
-
+      <small class="hint">Opcional si cobrás recargo con Point.</small>
       <small class="error-msg" *ngIf="form.get('precioPoint')?.hasError('min')">
         No puede ser negativo.
       </small>
     </label>
 
-    <label>
-      Costo {{ esInsumo ? "(por unidad/kg)" : "" }}
+    <!-- Costo: Si es insumo destaca en dorado porque se usa para restar en recetas -->
+    <label [class.full-width]="!esInsumo" [class.highlight-gold]="esInsumo">
+      <span>
+        {{ esInsumo ? "Costo por unidad / kg ($)" : "Costo de elaboración ($)" }}
+      </span>
       <input type="number" formControlName="costo" min="0" placeholder="0" />
-
+      <small class="hint" *ngIf="esInsumo">
+        Este valor se suma o resta al agregar/quitar el insumo en una venta.
+      </small>
       <small class="error-msg" *ngIf="form.get('costo')?.hasError('min')">
         El costo no puede ser negativo.
       </small>
     </label>
 
+    <!-- Stock actual y mínimo lado a lado -->
     <label>
-      Stock actual
+      <span>Stock actual</span>
       <input
         type="number"
         formControlName="stockActual"
@@ -149,7 +172,7 @@
     </label>
 
     <label>
-      Stock mínimo
+      <span>Stock mínimo (Alerta)</span>
       <input
         type="number"
         formControlName="stockMinimo"
@@ -173,12 +196,20 @@
     </label>
   </div>
 
-  <!-- Sección de receta/descuento: SOLO visible si es un Producto -->
+  <!-- ================= SECCIÓN DE RECETA / INSUMOS DESCONTADOS ================= -->
   <section class="stock-section" *ngIf="!esInsumo">
     <div class="section-head">
-      <div>
-        <h3>Insumos descontados</h3>
-        <p>Usalo para productos como hamburguesas o potes. Ej: descuenta pan y medallón.</p>
+      <div class="head-info">
+        <div class="title-row">
+          <h3>Receta / Insumos que descuenta</h3>
+          <span class="count-badge" *ngIf="descuentaStock.length > 0">
+            {{ descuentaStock.length }}
+          </span>
+        </div>
+        <p>
+          Cada vez que vendas este producto, se descontarán estos insumos
+          automáticamente.
+        </p>
       </div>
 
       <button type="button" class="btn-add" (click)="agregarInsumo()">
@@ -186,44 +217,59 @@
       </button>
     </div>
 
-    <div
-      class="insumo-row"
-      *ngFor="let item of descuentaStock.controls; let i = index"
-      [formGroup]="$any(item)"
-    >
-      <label>
-        Insumo a descontar
-        <select formControlName="productoId">
-          <option value="">Seleccionar insumo</option>
-          <option *ngFor="let p of productosInsumos" [value]="p._id">
-            {{ p.nombre }} ({{ p.unidad }})
-          </option>
-        </select>
-      </label>
+    <div class="insumos-list" *ngIf="descuentaStock.length > 0">
+      <div
+        class="insumo-card"
+        *ngFor="let item of descuentaStock.controls; let i = index"
+        [formGroup]="$any(item)"
+      >
+        <div class="insumo-select-col">
+          <span class="mini-label">Insumo #{{ i + 1 }}</span>
+          <select formControlName="productoId">
+            <option value="">Seleccionar insumo...</option>
+            <option *ngFor="let p of productosInsumos" [value]="p._id">
+              {{ p.nombre }} ({{ p.unidad }})
+              {{ p.costo ? "· $" + p.costo : "" }}
+            </option>
+          </select>
+        </div>
 
-      <label>
-        Cantidad
-        <input
-          type="number"
-          min="0.001"
-          step="any"
-          formControlName="cantidad"
-        />
-      </label>
+        <div class="insumo-qty-col">
+          <span class="mini-label">Cant.</span>
+          <input
+            type="number"
+            min="0.001"
+            step="any"
+            formControlName="cantidad"
+            placeholder="1"
+          />
+        </div>
 
-      <button type="button" class="btn-remove" (click)="quitarInsumo(i)">
-        Quitar
-      </button>
+        <button
+          type="button"
+          class="btn-remove"
+          (click)="quitarInsumo(i)"
+          title="Quitar insumo"
+        >
+          ✕
+        </button>
+      </div>
     </div>
 
     <div class="empty-insumos" *ngIf="descuentaStock.length === 0">
-      Este producto descuenta su propio stock directamente.
+      <span>⚡ Sin insumos asociados:</span> este producto descontará su propio
+      <b>Stock actual</b> directamente al venderse.
     </div>
   </section>
 
+  <!-- BOTONES DE ACCIÓN -->
   <div class="actions">
-    <button type="button" (click)="volver()">Cancelar</button>
-    <button type="submit" [disabled]="form.invalid">Guardar</button>
+    <button type="button" class="btn-cancel" (click)="volver()">
+      Cancelar
+    </button>
+    <button type="submit" class="btn-save" [disabled]="form.invalid">
+      {{ esEdicion() ? "Guardar cambios" : "Crear registro" }}
+    </button>
   </div>
 </form>
 
