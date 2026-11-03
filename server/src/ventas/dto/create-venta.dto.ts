@@ -36,7 +36,6 @@ export class VentaItemDto {
   // 1. Recargo en $ si el agregado suma al precio (ej: doble carne)
   @IsOptional()
   @IsNumber()
-  @Min(0)
   recargoUnitario?: number;
 
   // 2. IDs de insumos de la receta original que NO se descuentan (ej: "Sin papas")
